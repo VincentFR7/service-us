@@ -33,6 +33,23 @@ function getUserServiceDetails(username) {
   };
 }
 
+// Get all users' service information
+function getAllUsersServiceInfo() {
+  const users = getUsers();
+  return users.map(user => {
+    const history = getUserServiceHistory(user.fullname);
+    const totalDuration = calculateTotalServiceDuration(user.fullname);
+    
+    return {
+      fullname: user.fullname,
+      role: user.role,
+      regiment: user.regiment,
+      history: history,
+      totalDuration: totalDuration
+    };
+  });
+}
+
 // Reset a user's service hours (admin only)
 function resetUserHours(username) {
   resetUserServiceHistory(username);
@@ -45,22 +62,22 @@ function resetAllHours() {
   return { success: true, message: 'Les heures de service de tous les utilisateurs ont été réinitialisées.' };
 }
 
-// Get all users' service information (admin dashboard)
-function getAllUsersServiceInfo() {
+// Delete a user account (admin only)
+function deleteUser(username) {
   const users = getUsers();
+  const filteredUsers = users.filter(user => user.fullname !== username);
   
-  return users.map(user => {
-    const history = getUserServiceHistory(user.fullname);
-    const totalDuration = calculateTotalServiceDuration(user.fullname);
-    
-    return {
-      fullname: user.fullname,
-      role: user.role,
-      regiment: user.regiment,
-      recordCount: history.length,
-      totalDuration
-    };
-  });
+  if (users.length === filteredUsers.length) {
+    return { success: false, message: 'Utilisateur non trouvé' };
+  }
+  
+  // Remove user data
+  localStorage.setItem('serviceUsers', JSON.stringify(filteredUsers));
+  localStorage.removeItem(`password_${username}`);
+  localStorage.removeItem(`serviceHistory_${username}`);
+  localStorage.removeItem(`serviceStatus_${username}`);
+  
+  return { success: true, message: `Le compte de ${username} a été supprimé` };
 }
 
 export {
@@ -68,5 +85,6 @@ export {
   getUserServiceDetails,
   resetUserHours,
   resetAllHours,
-  getAllUsersServiceInfo
+  getAllUsersServiceInfo,
+  deleteUser
 };
