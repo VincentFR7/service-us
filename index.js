@@ -644,10 +644,10 @@ function loadUserServiceHistory(username) {
 
 // Load all users' hours for admin view
 function loadAllUsersHours() {
-  const allUsers = getAllUsersServiceInfo();
+  const usersByRegiment = getAllUsersServiceInfo();
   allUsersHoursList.innerHTML = '';
   
-  if (allUsers.length === 0) {
+  if (Object.keys(usersByRegiment).length === 0) {
     const emptyMessage = document.createElement('div');
     emptyMessage.className = 'hours-entry';
     emptyMessage.textContent = 'Aucun utilisateur trouvé';
@@ -655,17 +655,27 @@ function loadAllUsersHours() {
     return;
   }
   
-  allUsers.forEach(user => {
-    if (user.role !== 'admin') { // Don't show admin hours
+  // Sort regiments alphabetically
+  const sortedRegiments = Object.keys(usersByRegiment).sort();
+  
+  sortedRegiments.forEach(regiment => {
+    // Create regiment header
+    const regimentHeader = document.createElement('div');
+    regimentHeader.className = 'regiment-header';
+    regimentHeader.textContent = regiment;
+    allUsersHoursList.appendChild(regimentHeader);
+    
+    // Add users for this regiment
+    usersByRegiment[regiment].forEach(user => {
       const entry = document.createElement('div');
       entry.className = 'hours-entry';
       entry.innerHTML = `
-        <strong>${user.fullname}</strong> (${user.regiment})
+        <strong>${user.fullname}</strong>
         ${user.role === 'moderator' ? '- Modérateur' : ''}
         <br>Total des heures: ${user.totalDuration}
       `;
       allUsersHoursList.appendChild(entry);
-    }
+    });
   });
 }
 
