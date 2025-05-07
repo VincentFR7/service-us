@@ -47,30 +47,86 @@ function registerUser(fullname, password, regiment) {
     return { success: false, message: 'Ce nom est déjà utilisé' };
   }
   
-  // Add new user
-  users.push({ fullname, password, regiment, role: 'user' });
-  localStorage.setItem('serviceUsers', JSON.stringify(users));
+  // Add new user with security question
+  users.push({ 
+    fullname, 
+    password, 
+    regiment, 
+    role: 'user',
+    securityQuestion: 'Quel est votre premier régiment?',
+    securityAnswer: regiment,
+    forcePasswordChange: false
+  });
   
-  // Save password separately for persistence
+  localStorage.setItem('serviceUsers', JSON.stringify(users));
   localStorage.setItem(`password_${fullname}`, password);
   
   return { success: true };
 }
 
-// Reset password for a user
-function resetPassword(fullname, newPassword) {
+// Reset password using security question
+function resetPasswordWithSecurity(fullname, securityAnswer, newPassword) {
   const users = getUsers();
-  const userIndex = users.findIndex(u => u.fullname.toLowerCase() === fullname.toLowerCase());
+  const user = users.find(u => u.fullname.toLowerCase() === fullname.toLowerCase());
+  
+  if (!user) {
+    return { success: false, message: 'Utilisateur non trouvé' };
+  }
+  
+  if (user.securityAnswer.toLowerCase() !== securityAnswer.toLowerCase()) {
+    return { success: false, message: 'Réponse incorrecte à la question de sécurité.' };
+  }
+  
+  user.password = newPassword;
+  user.forcePasswordChange = false;
+  localStorage.setItem('serviceUsers', JSON.stringify(users));
+  localStorage.setItem(`password_${fullname}`, newPassword);
+  
+  return { success: true, message: 'Mot de passe réinitialisé avec succès' };
+}
+
+// Admin force password reset
+function adminResetUserPassword(username) {
+  const users = getUsers();
+  const userIndex = users.findIndex(u => u.fullname.toLowerCase() === username.toLowerCase());
   
   if (userIndex === -1) {
     return { success: false, message: 'Utilisateur non trouvé' };
   }
   
-  users[userIndex].password = newPassword;
-  localStorage.setItem('serviceUsers', JSON.stringify(users));
-  localStorage.setItem(`password_${fullname}`, newPassword);
+  const tempPassword = Math.random().toString(36).slice(-8);
+  users[userIndex].password = tempPassword;
+  users[userIndex].forcePasswordChange = true;
   
-  return { success: true, message: 'Mot de passe réinitialisé avec succès' };
+  localStorage.setItem('serviceUsers', JSON.stringify(users));
+  localStorage.setItem(`password_${username}`, tempPassword);
+  
+  return { 
+    success: true, 
+    message: `Mot de passe temporaire: ${tempPassword}. L'utilisateur devra le changer à sa prochaine connexion.` 
+  };
+}
+
+// Toggle user role between user and moderator
+function toggleModeratorRole(username) {
+  const users = getUsers();
+  const userIndex = users.findIndex(u => u.fullname.toLowerCase() === username.toLowerCase());
+  
+  if (userIndex === -1) {
+    return { success: false, message: 'Utilisateur non trouvé' };
+  }
+  
+  if (users[userIndex].role === 'admin') {
+    return { success: false, message: 'Impossible de modifier le rôle d\'un administrateur' };
+  }
+  
+  users[userIndex].role = users[userIndex].role === 'moderator' ? 'user' : 'moderator';
+  localStorage.setItem('serviceUsers', JSON.stringify(users));
+  
+  return { 
+    success: true, 
+    message: `${username} est maintenant ${users[userIndex].role === 'moderator' ? 'modérateur' : 'utilisateur'}`
+  };
 }
 
 // Add a new user or update existing one
@@ -83,8 +139,16 @@ function saveUser(fullname, password, regiment, role = 'user') {
     users[existingUserIndex].password = password;
     users[existingUserIndex].regiment = regiment;
   } else {
-    // Add new user
-    users.push({ fullname, password, regiment, role });
+    // Add new user with security question
+    users.push({ 
+      fullname, 
+      password, 
+      regiment, 
+      role,
+      securityQuestion: 'Quel est votre premier régiment?',
+      securityAnswer: regiment,
+      forcePasswordChange: false
+    });
   }
   
   localStorage.setItem('serviceUsers', JSON.stringify(users));
@@ -96,40 +160,45 @@ function saveUser(fullname, password, regiment, role = 'user') {
 // Authenticate user
 function authenticateUser(fullname, password) {
   const users = getUsers();
-  const savedPassword = localStorage.getItem(`password_${fullname}`);
+  const user = users.find(u => u.fullname.toLowerCase() === fullname.toLowerCase());
   
-  // Check against saved password first
-  if (savedPassword === password) {
-    const user = users.find(u => u.fullname.toLowerCase() === fullname.toLowerCase());
-    if (user) {
-      sessionStorage.setItem('currentUser', JSON.stringify({
-        fullname: user.fullname,
-        role: user.role,
-        regiment: user.regiment
-      }));
-      return { success: true, user: { fullname: user.fullname, role: user.role, regiment: user.regiment } };
+  if (!user) {
+    return { success: false, message: 'Nom ou mot de passe incorrect' };
+  }
+  
+  if (user.password !== password) {
+    return { success: false, message: 'Nom ou mot de passe incorrect' };
+  }
+  
+  sessionStorage.setItem('currentUser', JSON.stringify({
+    fullname: user.fullname,
+    role: user.role,
+    regiment: user.regiment,
+    forcePasswordChange: user.forcePasswordChange
+  }));
+  
+  if (user.forcePasswordChange) {
+    return { 
+      success: true, 
+      user: { 
+        fullname: user.fullname, 
+        role: user.role, 
+        regiment: user.regiment,
+        forcePasswordChange: true
+      },
+      message: 'Vous devez changer votre mot de passe'
+    };
+  }
+  
+  return { 
+    success: true, 
+    user: { 
+      fullname: user.fullname, 
+      role: user.role, 
+      regiment: user.regiment,
+      forcePasswordChange: false
     }
-  }
-  
-  // Fall back to checking users array
-  const user = users.find(u => 
-    u.fullname.toLowerCase() === fullname.toLowerCase() && 
-    u.password === password
-  );
-  
-  if (user) {
-    // Save password for persistence
-    localStorage.setItem(`password_${fullname}`, password);
-    
-    sessionStorage.setItem('currentUser', JSON.stringify({
-      fullname: user.fullname,
-      role: user.role,
-      regiment: user.regiment
-    }));
-    return { success: true, user: { fullname: user.fullname, role: user.role, regiment: user.regiment } };
-  }
-  
-  return { success: false, message: 'Nom ou mot de passe incorrect' };
+  };
 }
 
 // Get current authenticated user
@@ -148,6 +217,11 @@ function isAdmin(user) {
   return user && user.role === 'admin';
 }
 
+// Check if user is moderator
+function isModerator(user) {
+  return user && (user.role === 'moderator' || user.role === 'admin');
+}
+
 // Initialize on module load
 initializeUsers();
 
@@ -159,6 +233,9 @@ export {
   getCurrentUser,
   logout,
   isAdmin,
+  isModerator,
   registerUser,
-  resetPassword
+  resetPasswordWithSecurity,
+  adminResetUserPassword,
+  toggleModeratorRole
 };
