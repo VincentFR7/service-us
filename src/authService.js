@@ -24,6 +24,22 @@ function getUsers() {
   return JSON.parse(localStorage.getItem('serviceUsers') || '[]');
 }
 
+// Register a new user
+function registerUser(fullname, password) {
+  const users = getUsers();
+  
+  // Check if username already exists
+  if (users.some(u => u.fullname.toLowerCase() === fullname.toLowerCase())) {
+    return { success: false, message: 'Ce nom est déjà utilisé' };
+  }
+  
+  // Add new user
+  users.push({ fullname, password, role: 'user' });
+  localStorage.setItem('serviceUsers', JSON.stringify(users));
+  
+  return { success: true };
+}
+
 // Add a new user or update existing one
 function saveUser(fullname, password, role = 'user') {
   const users = getUsers();
@@ -86,5 +102,6 @@ export {
   authenticateUser,
   getCurrentUser,
   logout,
-  isAdmin
+  isAdmin,
+  registerUser
 };
