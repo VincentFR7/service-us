@@ -24,6 +24,25 @@ function getUsers() {
   return JSON.parse(localStorage.getItem('serviceUsers') || '[]');
 }
 
+// Register a new user
+function registerUser(fullname, password) {
+  const users = getUsers();
+  
+  // Check if username already exists
+  if (users.some(u => u.fullname.toLowerCase() === fullname.toLowerCase())) {
+    return { success: false, message: 'Ce nom est déjà utilisé' };
+  }
+  
+  // Add new user
+  users.push({ fullname, password, role: 'user' });
+  localStorage.setItem('serviceUsers', JSON.stringify(users));
+  
+  // Save password separately for persistence
+  localStorage.setItem(`password_${fullname}`, password);
+  
+  return { success: true };
+}
+
 // Add a new user or update existing one
 function saveUser(fullname, password, role = 'user') {
   const users = getUsers();
@@ -38,19 +57,40 @@ function saveUser(fullname, password, role = 'user') {
   }
   
   localStorage.setItem('serviceUsers', JSON.stringify(users));
+  
+  // Save password separately for persistence
+  localStorage.setItem(`password_${fullname}`, password);
+  
   return { fullname, role };
 }
 
 // Authenticate user
 function authenticateUser(fullname, password) {
   const users = getUsers();
+  const savedPassword = localStorage.getItem(`password_${fullname}`);
+  
+  // Check against saved password first
+  if (savedPassword === password) {
+    const user = users.find(u => u.fullname.toLowerCase() === fullname.toLowerCase());
+    if (user) {
+      sessionStorage.setItem('currentUser', JSON.stringify({
+        fullname: user.fullname,
+        role: user.role
+      }));
+      return { success: true, user: { fullname: user.fullname, role: user.role } };
+    }
+  }
+  
+  // Fall back to checking users array
   const user = users.find(u => 
     u.fullname.toLowerCase() === fullname.toLowerCase() && 
     u.password === password
   );
   
   if (user) {
-    // Set current user in session
+    // Save password for persistence
+    localStorage.setItem(`password_${fullname}`, password);
+    
     sessionStorage.setItem('currentUser', JSON.stringify({
       fullname: user.fullname,
       role: user.role
@@ -86,5 +126,6 @@ export {
   authenticateUser,
   getCurrentUser,
   logout,
-  isAdmin
+  isAdmin,
+  registerUser
 };

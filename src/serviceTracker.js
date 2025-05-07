@@ -39,6 +39,32 @@ function formatDuration(durationInSeconds) {
   ].join(':');
 }
 
+// Check if connected to specific Garry's Mod server
+async function isGModRunning() {
+  try {
+    // In a real implementation, this would check the actual server connection
+    // For demo purposes, we'll check localStorage
+    const serverIP = "194.69.160.40:27015";
+    const isConnected = localStorage.getItem('gmodServerConnection') === serverIP;
+    
+    // Force end service if not connected to the correct server
+    if (!isConnected) {
+      const users = JSON.parse(localStorage.getItem('serviceUsers') || '[]');
+      users.forEach(user => {
+        const status = getCurrentServiceStatus(user.fullname);
+        if (status.isActive) {
+          endService(user.fullname);
+        }
+      });
+    }
+    
+    return isConnected;
+  } catch (error) {
+    console.error('Error checking server connection:', error);
+    return false;
+  }
+}
+
 // Get user's service history
 function getUserServiceHistory(username) {
   const serviceHistoryJson = localStorage.getItem(`serviceHistory_${username}`);
@@ -84,10 +110,19 @@ function getCurrentServiceStatus(username) {
 }
 
 // Start service for a user
-function startService(username) {
+async function startService(username) {
+  const gmodRunning = await isGModRunning();
+  if (!gmodRunning) {
+    throw new Error('Vous devez être connecté au serveur 194.69.160.40:27015 pour prendre votre service.');
+  }
+
   const now = new Date().getTime();
   const status = { isActive: true, startTime: now };
   localStorage.setItem(`serviceStatus_${username}`, JSON.stringify(status));
+  
+  // Start monitoring server connection
+  startGModMonitoring(username);
+  
   return status;
 }
 
@@ -105,7 +140,37 @@ function endService(username) {
     startTime: null 
   }));
   
+  // Stop monitoring
+  stopGModMonitoring();
+  
   return record;
+}
+
+// Monitor server connection
+let gmodMonitorInterval;
+
+function startGModMonitoring(username) {
+  // Clear any existing interval
+  stopGModMonitoring();
+  
+  // Check every 5 seconds if still connected to the server
+  gmodMonitorInterval = setInterval(async () => {
+    const gmodRunning = await isGModRunning();
+    if (!gmodRunning) {
+      const status = getCurrentServiceStatus(username);
+      if (status.isActive) {
+        endService(username);
+        alert('Service terminé automatiquement : Déconnecté du serveur 194.69.160.40:27015');
+      }
+    }
+  }, 5000);
+}
+
+function stopGModMonitoring() {
+  if (gmodMonitorInterval) {
+    clearInterval(gmodMonitorInterval);
+    gmodMonitorInterval = null;
+  }
 }
 
 export {
@@ -119,5 +184,6 @@ export {
   calculateTotalServiceDuration,
   getCurrentServiceStatus,
   startService,
-  endService
+  endService,
+  isGModRunning
 };
