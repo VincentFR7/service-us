@@ -22,12 +22,6 @@ body {
   background-color: var(--background-color);
   color: var(--text-color);
   line-height: 1.6;
-  background-image: url('https://images.pexels.com/photos/5839798/pexels-photo-5839798.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  background-color: rgba(0, 0, 0, 0.85);
-  background-blend-mode: multiply;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
