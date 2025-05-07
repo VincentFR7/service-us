@@ -42,10 +42,21 @@ function formatDuration(durationInSeconds) {
 // Check if Garry's Mod is running
 async function isGModRunning() {
   try {
-    // Simulate checking if Garry's Mod is running
-    // In a real implementation, this would use the Steam Web API
-    const gmodAppId = "4000"; // Garry's Mod Steam App ID
+    // For demo purposes, we'll check localStorage
+    // In production, this should use Steam Web API
     const isRunning = localStorage.getItem('gmodRunning') === 'true';
+    
+    // Force end service if game is not running
+    if (!isRunning) {
+      const users = JSON.parse(localStorage.getItem('serviceUsers') || '[]');
+      users.forEach(user => {
+        const status = getCurrentServiceStatus(user.fullname);
+        if (status.isActive) {
+          endService(user.fullname);
+        }
+      });
+    }
+    
     return isRunning;
   } catch (error) {
     console.error('Error checking Garry\'s Mod status:', error);
@@ -99,7 +110,6 @@ function getCurrentServiceStatus(username) {
 
 // Start service for a user
 async function startService(username) {
-  // Check if Garry's Mod is running
   const gmodRunning = await isGModRunning();
   if (!gmodRunning) {
     throw new Error('Garry\'s Mod n\'est pas en cours d\'exécution. Veuillez lancer le jeu pour prendre votre service.');
@@ -142,15 +152,18 @@ function startGModMonitoring(username) {
   // Clear any existing interval
   stopGModMonitoring();
   
-  // Check every 30 seconds if Garry's Mod is still running
+  // Check every 5 seconds if Garry's Mod is still running
   gmodMonitorInterval = setInterval(async () => {
     const gmodRunning = await isGModRunning();
     if (!gmodRunning) {
       // End service automatically if Garry's Mod is closed
-      endService(username);
-      alert('Service terminé automatiquement : Garry\'s Mod n\'est plus en cours d\'exécution.');
+      const status = getCurrentServiceStatus(username);
+      if (status.isActive) {
+        endService(username);
+        alert('Service terminé automatiquement : Garry\'s Mod n\'est plus en cours d\'exécution.');
+      }
     }
-  }, 30000);
+  }, 5000); // Check every 5 seconds instead of 30
 }
 
 function stopGModMonitoring() {
