@@ -371,3 +371,19 @@ footer {
 .reset-password-link:hover {
   color: var(--warning-color);
 }
+
+/* Regiment grouping styles */
+.regiment-header {
+  background-color: var(--secondary-color);
+  color: var(--accent-color);
+  padding: 10px;
+  font-family: 'Special Elite', cursive;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--accent-color);
+  margin-top: 10px;
+}
+
+.regiment-header:first-child {
+  margin-top: 0;
+}
