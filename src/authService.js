@@ -5,8 +5,17 @@
 
 // Default admin credentials
 const DEFAULT_ADMINS = [
-  { fullname: 'Vincent', password: 'admin', role: 'admin' },
-  { fullname: 'Admin', password: 'admin', role: 'admin' }
+  { fullname: 'Vincent', password: 'admin', role: 'admin', regiment: '1st Infantry Division' },
+  { fullname: 'Field Admin', password: 'admin', role: 'admin', regiment: '1st Infantry Division' }
+];
+
+const REGIMENTS = [
+  '1st Infantry Division',
+  '783rd Military Police',
+  '13e Génie',
+  '3rd Armored',
+  '101st Airbone Division',
+  '188th Médical Battalion'
 ];
 
 // Initialize users from localStorage or use defaults
@@ -24,8 +33,13 @@ function getUsers() {
   return JSON.parse(localStorage.getItem('serviceUsers') || '[]');
 }
 
+// Get available regiments
+function getRegiments() {
+  return REGIMENTS;
+}
+
 // Register a new user
-function registerUser(fullname, password) {
+function registerUser(fullname, password, regiment) {
   const users = getUsers();
   
   // Check if username already exists
@@ -34,7 +48,7 @@ function registerUser(fullname, password) {
   }
   
   // Add new user
-  users.push({ fullname, password, role: 'user' });
+  users.push({ fullname, password, regiment, role: 'user' });
   localStorage.setItem('serviceUsers', JSON.stringify(users));
   
   // Save password separately for persistence
@@ -43,25 +57,40 @@ function registerUser(fullname, password) {
   return { success: true };
 }
 
+// Reset password for a user
+function resetPassword(fullname, newPassword) {
+  const users = getUsers();
+  const userIndex = users.findIndex(u => u.fullname.toLowerCase() === fullname.toLowerCase());
+  
+  if (userIndex === -1) {
+    return { success: false, message: 'Utilisateur non trouvé' };
+  }
+  
+  users[userIndex].password = newPassword;
+  localStorage.setItem('serviceUsers', JSON.stringify(users));
+  localStorage.setItem(`password_${fullname}`, newPassword);
+  
+  return { success: true, message: 'Mot de passe réinitialisé avec succès' };
+}
+
 // Add a new user or update existing one
-function saveUser(fullname, password, role = 'user') {
+function saveUser(fullname, password, regiment, role = 'user') {
   const users = getUsers();
   const existingUserIndex = users.findIndex(u => u.fullname.toLowerCase() === fullname.toLowerCase());
   
   if (existingUserIndex >= 0) {
-    // Update existing user's password
+    // Update existing user
     users[existingUserIndex].password = password;
+    users[existingUserIndex].regiment = regiment;
   } else {
     // Add new user
-    users.push({ fullname, password, role });
+    users.push({ fullname, password, regiment, role });
   }
   
   localStorage.setItem('serviceUsers', JSON.stringify(users));
-  
-  // Save password separately for persistence
   localStorage.setItem(`password_${fullname}`, password);
   
-  return { fullname, role };
+  return { fullname, role, regiment };
 }
 
 // Authenticate user
@@ -75,9 +104,10 @@ function authenticateUser(fullname, password) {
     if (user) {
       sessionStorage.setItem('currentUser', JSON.stringify({
         fullname: user.fullname,
-        role: user.role
+        role: user.role,
+        regiment: user.regiment
       }));
-      return { success: true, user: { fullname: user.fullname, role: user.role } };
+      return { success: true, user: { fullname: user.fullname, role: user.role, regiment: user.regiment } };
     }
   }
   
@@ -93,9 +123,10 @@ function authenticateUser(fullname, password) {
     
     sessionStorage.setItem('currentUser', JSON.stringify({
       fullname: user.fullname,
-      role: user.role
+      role: user.role,
+      regiment: user.regiment
     }));
-    return { success: true, user: { fullname: user.fullname, role: user.role } };
+    return { success: true, user: { fullname: user.fullname, role: user.role, regiment: user.regiment } };
   }
   
   return { success: false, message: 'Nom ou mot de passe incorrect' };
@@ -122,10 +153,12 @@ initializeUsers();
 
 export {
   getUsers,
+  getRegiments,
   saveUser,
   authenticateUser,
   getCurrentUser,
   logout,
   isAdmin,
-  registerUser
+  registerUser,
+  resetPassword
 };
