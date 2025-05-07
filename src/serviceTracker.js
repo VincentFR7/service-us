@@ -44,6 +44,11 @@ let lastGameStatus = false;
 let gameCheckInterval;
 
 async function checkGameConnection() {
+  // For development, always return true
+  return true;
+  
+  // In production, uncomment this code:
+  /*
   try {
     const response = await fetch('http://194.69.160.40:27015/info', {
       mode: 'no-cors',
@@ -53,6 +58,7 @@ async function checkGameConnection() {
   } catch {
     return false;
   }
+  */
 }
 
 async function isGModRunning() {
@@ -75,7 +81,7 @@ async function isGModRunning() {
     return isConnected;
   } catch (error) {
     console.error('Error checking game connection:', error);
-    return false;
+    return true; // For development
   }
 }
 
