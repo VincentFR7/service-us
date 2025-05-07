@@ -39,6 +39,20 @@ function formatDuration(durationInSeconds) {
   ].join(':');
 }
 
+// Check if Garry's Mod is running
+async function isGModRunning() {
+  try {
+    // Simulate checking if Garry's Mod is running
+    // In a real implementation, this would use the Steam Web API
+    const gmodAppId = "4000"; // Garry's Mod Steam App ID
+    const isRunning = localStorage.getItem('gmodRunning') === 'true';
+    return isRunning;
+  } catch (error) {
+    console.error('Error checking Garry\'s Mod status:', error);
+    return false;
+  }
+}
+
 // Get user's service history
 function getUserServiceHistory(username) {
   const serviceHistoryJson = localStorage.getItem(`serviceHistory_${username}`);
@@ -84,10 +98,20 @@ function getCurrentServiceStatus(username) {
 }
 
 // Start service for a user
-function startService(username) {
+async function startService(username) {
+  // Check if Garry's Mod is running
+  const gmodRunning = await isGModRunning();
+  if (!gmodRunning) {
+    throw new Error('Garry\'s Mod n\'est pas en cours d\'exécution. Veuillez lancer le jeu pour prendre votre service.');
+  }
+
   const now = new Date().getTime();
   const status = { isActive: true, startTime: now };
   localStorage.setItem(`serviceStatus_${username}`, JSON.stringify(status));
+  
+  // Start monitoring Garry's Mod status
+  startGModMonitoring(username);
+  
   return status;
 }
 
@@ -105,7 +129,35 @@ function endService(username) {
     startTime: null 
   }));
   
+  // Stop monitoring
+  stopGModMonitoring();
+  
   return record;
+}
+
+// Monitor Garry's Mod status
+let gmodMonitorInterval;
+
+function startGModMonitoring(username) {
+  // Clear any existing interval
+  stopGModMonitoring();
+  
+  // Check every 30 seconds if Garry's Mod is still running
+  gmodMonitorInterval = setInterval(async () => {
+    const gmodRunning = await isGModRunning();
+    if (!gmodRunning) {
+      // End service automatically if Garry's Mod is closed
+      endService(username);
+      alert('Service terminé automatiquement : Garry\'s Mod n\'est plus en cours d\'exécution.');
+    }
+  }, 30000);
+}
+
+function stopGModMonitoring() {
+  if (gmodMonitorInterval) {
+    clearInterval(gmodMonitorInterval);
+    gmodMonitorInterval = null;
+  }
 }
 
 export {
@@ -119,5 +171,6 @@ export {
   calculateTotalServiceDuration,
   getCurrentServiceStatus,
   startService,
-  endService
+  endService,
+  isGModRunning
 };
