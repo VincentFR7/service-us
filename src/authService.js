@@ -30,14 +30,28 @@ function initializeUsers() {
 
 // Get all users
 function getUsers() {
-  const users = JSON.parse(localStorage.getItem('serviceUsers') || '[]');
-  // Ensure admins are always present
-  DEFAULT_ADMINS.forEach(admin => {
-    if (!users.some(u => u.fullname === admin.fullname)) {
-      users.push(admin);
-    }
-  });
-  localStorage.setItem('serviceUsers', JSON.stringify(users));
+  let users = [];
+  try {
+    // Get users from localStorage
+    users = JSON.parse(localStorage.getItem('serviceUsers') || '[]');
+    
+    // Ensure admins are always present
+    DEFAULT_ADMINS.forEach(admin => {
+      if (!users.some(u => u.fullname === admin.fullname)) {
+        users.push(admin);
+      }
+    });
+    
+    // Update localStorage with complete user list
+    localStorage.setItem('serviceUsers', JSON.stringify(users));
+    
+    // Sync with IndexedDB
+    syncWithIndexedDB(users);
+  } catch (error) {
+    console.error('Error getting users:', error);
+    users = DEFAULT_ADMINS;
+  }
+  
   return users;
 }
 
@@ -67,11 +81,17 @@ function registerUser(fullname, password, regiment) {
   };
   
   users.push(newUser);
-  localStorage.setItem('serviceUsers', JSON.stringify(users));
-  localStorage.setItem(`password_${fullname}`, password);
   
-  // Backup to IndexedDB
-  backupToIndexedDB('users', users);
+  try {
+    localStorage.setItem('serviceUsers', JSON.stringify(users));
+    localStorage.setItem(`password_${fullname}`, password);
+    
+    // Backup to IndexedDB
+    backupToIndexedDB('users', users);
+  } catch (error) {
+    console.error('Error registering user:', error);
+    return { success: false, message: 'Erreur lors de l\'enregistrement' };
+  }
   
   return { success: true };
 }
@@ -91,11 +111,17 @@ function resetPasswordWithSecurity(fullname, securityAnswer, newPassword) {
   
   user.password = newPassword;
   user.forcePasswordChange = false;
-  localStorage.setItem('serviceUsers', JSON.stringify(users));
-  localStorage.setItem(`password_${fullname}`, newPassword);
   
-  // Backup to IndexedDB
-  backupToIndexedDB('users', users);
+  try {
+    localStorage.setItem('serviceUsers', JSON.stringify(users));
+    localStorage.setItem(`password_${fullname}`, newPassword);
+    
+    // Backup to IndexedDB
+    backupToIndexedDB('users', users);
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    return { success: false, message: 'Erreur lors de la réinitialisation' };
+  }
   
   return { success: true, message: 'Mot de passe réinitialisé avec succès' };
 }
@@ -113,11 +139,16 @@ function adminResetUserPassword(username) {
   users[userIndex].password = tempPassword;
   users[userIndex].forcePasswordChange = true;
   
-  localStorage.setItem('serviceUsers', JSON.stringify(users));
-  localStorage.setItem(`password_${username}`, tempPassword);
-  
-  // Backup to IndexedDB
-  backupToIndexedDB('users', users);
+  try {
+    localStorage.setItem('serviceUsers', JSON.stringify(users));
+    localStorage.setItem(`password_${username}`, tempPassword);
+    
+    // Backup to IndexedDB
+    backupToIndexedDB('users', users);
+  } catch (error) {
+    console.error('Error resetting user password:', error);
+    return { success: false, message: 'Erreur lors de la réinitialisation' };
+  }
   
   return { 
     success: true, 
@@ -139,10 +170,16 @@ function toggleModeratorRole(username) {
   }
   
   users[userIndex].role = users[userIndex].role === 'moderator' ? 'user' : 'moderator';
-  localStorage.setItem('serviceUsers', JSON.stringify(users));
   
-  // Backup to IndexedDB
-  backupToIndexedDB('users', users);
+  try {
+    localStorage.setItem('serviceUsers', JSON.stringify(users));
+    
+    // Backup to IndexedDB
+    backupToIndexedDB('users', users);
+  } catch (error) {
+    console.error('Error toggling moderator role:', error);
+    return { success: false, message: 'Erreur lors du changement de rôle' };
+  }
   
   return { 
     success: true, 
@@ -166,18 +203,20 @@ function saveUser(fullname, password, regiment, role = 'user') {
   };
   
   if (existingUserIndex >= 0) {
-    // Update existing user
     users[existingUserIndex] = { ...users[existingUserIndex], ...userData };
   } else {
-    // Add new user
     users.push(userData);
   }
   
-  localStorage.setItem('serviceUsers', JSON.stringify(users));
-  localStorage.setItem(`password_${fullname}`, password);
-  
-  // Backup to IndexedDB
-  backupToIndexedDB('users', users);
+  try {
+    localStorage.setItem('serviceUsers', JSON.stringify(users));
+    localStorage.setItem(`password_${fullname}`, password);
+    
+    // Backup to IndexedDB
+    backupToIndexedDB('users', users);
+  } catch (error) {
+    console.error('Error saving user:', error);
+  }
   
   return { fullname, role, regiment };
 }
@@ -245,6 +284,40 @@ function isAdmin(user) {
 // Check if user is moderator
 function isModerator(user) {
   return user && (user.role === 'moderator' || user.role === 'admin');
+}
+
+// Sync with IndexedDB
+async function syncWithIndexedDB(currentUsers) {
+  try {
+    const db = await openDB();
+    const tx = db.transaction('users', 'readwrite');
+    const store = tx.objectStore('users');
+    
+    // Get stored users from IndexedDB
+    const storedData = await store.get(1);
+    
+    if (storedData && storedData.data) {
+      // Merge users from localStorage and IndexedDB
+      const mergedUsers = [...currentUsers];
+      
+      storedData.data.forEach(storedUser => {
+        if (!mergedUsers.some(u => u.fullname === storedUser.fullname)) {
+          mergedUsers.push(storedUser);
+        }
+      });
+      
+      // Update both storages
+      localStorage.setItem('serviceUsers', JSON.stringify(mergedUsers));
+      await store.put({ id: 1, data: mergedUsers, timestamp: Date.now() });
+    } else {
+      // Initial backup
+      await store.put({ id: 1, data: currentUsers, timestamp: Date.now() });
+    }
+    
+    await tx.complete;
+  } catch (error) {
+    console.error('Sync failed:', error);
+  }
 }
 
 // Backup data to IndexedDB
