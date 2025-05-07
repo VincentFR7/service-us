@@ -9,7 +9,7 @@
   --primary-color: #8b0000; /* Dark red */
   --secondary-color: #3a3a3c; /* Dark gray */
   --accent-color: #d4af37; /* Gold */
-  --background-color: #121212; /* Very dark gray */
+  --background-color: rgba(18, 18, 18, 0.8); /* Semi-transparent dark gray */
   --text-color: #e0e0e0; /* Light gray */
   --danger-color: #e63946; /* Red */
   --success-color: #2a9d8f; /* Teal */
@@ -19,7 +19,7 @@
 
 body {
   font-family: 'Courier Prime', monospace;
-  background-color: #000000;
+  background-color: rgba(0, 0, 0, 0.9);
   color: var(--text-color);
   line-height: 1.6;
   min-height: 100vh;
@@ -33,7 +33,7 @@ body {
 .container {
   width: 100%;
   max-width: 800px;
-  background-color: rgba(18, 18, 18, 0.9);
+  background-color: var(--background-color);
   border: 2px solid var(--accent-color);
   border-radius: 5px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
@@ -304,4 +304,36 @@ footer {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary-color);
+}
+
+/* Regiment selection styles */
+.regiment-select {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  border: 1px solid var(--accent-color);
+  padding: 10px;
+  width: 100%;
+  font-family: 'Courier Prime', monospace;
+  margin-bottom: 15px;
+}
+
+.regiment-select option {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  padding: 5px;
+}
+
+/* Password reset styles */
+.reset-password-link {
+  color: var(--accent-color);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  display: block;
+  text-align: center;
+}
+
+.reset-password-link:hover {
+  color: var(--warning-color);
 }
