@@ -3,24 +3,25 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  user-select: none;
 }
 
 :root {
-  --primary-color: #8b0000; /* Dark red */
-  --secondary-color: #3a3a3c; /* Dark gray */
-  --accent-color: #d4af37; /* Gold */
-  --background-color: rgba(18, 18, 18, 0.8); /* Semi-transparent dark gray */
-  --text-color: #e0e0e0; /* Light gray */
-  --danger-color: #e63946; /* Red */
-  --success-color: #2a9d8f; /* Teal */
-  --warning-color: #e9c46a; /* Yellow */
-  --disabled-color: #6c757d; /* Medium gray */
-  --moderator-color: #4a90e2; /* Blue */
+  --primary-color: #3a3a2b; /* Military olive */
+  --secondary-color: #1a1a14; /* Dark military */
+  --accent-color: #8b7355; /* Military brass */
+  --background-color: #2a2a20; /* Dark olive */
+  --text-color: #c5c5b2; /* Aged paper */
+  --danger-color: #8b0000; /* Blood red */
+  --success-color: #4a5d23; /* Military green */
+  --warning-color: #8b7355; /* Brass */
+  --disabled-color: #4f4f4f;
+  --moderator-color: #436b95;
 }
 
 body {
-  font-family: 'Courier Prime', monospace;
-  background-color: rgba(0, 0, 0, 0.9);
+  font-family: 'Special Elite', cursive;
+  background-color: var(--secondary-color);
   color: var(--text-color);
   line-height: 1.6;
   min-height: 100vh;
@@ -29,34 +30,73 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px;
+  position: relative;
+}
+
+.military-paper {
+  background-color: var(--background-color);
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  border: 8px double var(--accent-color);
+  position: relative;
+}
+
+.military-paper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(
+      45deg,
+      rgba(139, 115, 85, 0.1),
+      rgba(139, 115, 85, 0.1) 10px,
+      transparent 10px,
+      transparent 20px
+    );
+  pointer-events: none;
 }
 
 .container {
   width: 100%;
   max-width: 800px;
-  background-color: var(--background-color);
-  border: 2px solid var(--accent-color);
-  border-radius: 5px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
   position: relative;
+  overflow: hidden;
 }
 
-.container::before {
-  content: "";
+.stamp {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 5px;
-  background: linear-gradient(90deg, var(--primary-color), var(--accent-color), var(--primary-color));
+  top: 20px;
+  right: 20px;
+  width: 100px;
+  height: 100px;
+  border: 3px solid var(--accent-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-15deg);
+  opacity: 0.7;
+  pointer-events: none;
 }
 
-/* Military styling elements */
+.stamp::before {
+  content: 'TOP SECRET';
+  font-size: 12px;
+  color: var(--accent-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
 .military-header {
   background-color: var(--secondary-color);
-  padding: 15px 20px;
-  border-bottom: 2px solid var(--accent-color);
+  padding: 30px;
+  border-bottom: 3px double var(--accent-color);
   position: relative;
 }
 
@@ -64,10 +104,12 @@ body {
   font-family: 'Special Elite', cursive;
   text-align: center;
   color: var(--accent-color);
-  font-size: 1.5rem;
-  letter-spacing: 1px;
+  font-size: 1.8rem;
+  letter-spacing: 3px;
   text-transform: uppercase;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  position: relative;
+  margin-bottom: 10px;
 }
 
 .military-insignia {
@@ -75,45 +117,68 @@ body {
   top: 50%;
   right: 20px;
   transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   background-color: var(--accent-color);
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  box-shadow: 0 0 10px rgba(181, 166, 66, 0.5);
 }
 
 .military-btn {
   background-color: var(--primary-color);
   color: var(--text-color);
-  border: none;
+  border: 2px solid var(--accent-color);
   padding: 12px 24px;
   font-family: 'Special Elite', cursive;
-  font-size: 1rem;
+  font-size: 1.1rem;
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid var(--accent-color);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
   margin: 10px 0;
   width: 100%;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.military-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: 0.5s;
+}
+
+.military-btn:hover::before {
+  left: 100%;
 }
 
 .military-btn:hover {
-  background-color: #a71d1d;
+  background-color: #5a6c4b;
   transform: translateY(-2px);
 }
 
 .military-btn:active {
   transform: translateY(1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .military-btn.secondary {
   background-color: var(--secondary-color);
+  border-color: var(--accent-color);
 }
 
 .military-btn.secondary:hover {
-  background-color: #4a4a4c;
+  background-color: #3c3c3c;
 }
 
 .military-btn.danger {
@@ -121,7 +186,7 @@ body {
 }
 
 .military-btn.danger:hover {
-  background-color: #f25d69;
+  background-color: #a01010;
 }
 
 .military-btn.warning {
@@ -130,7 +195,7 @@ body {
 }
 
 .military-btn.warning:hover {
-  background-color: #f4d03f;
+  background-color: #d1aa59;
 }
 
 .military-btn.accent {
@@ -138,7 +203,7 @@ body {
 }
 
 .military-btn.accent:hover {
-  background-color: #5da0e2;
+  background-color: #537ba5;
 }
 
 .military-btn.disabled {
@@ -154,38 +219,48 @@ body {
 
 /* Form styles */
 .form-container {
-  padding: 20px;
+  padding: 25px;
+  background: rgba(44, 44, 44, 0.7);
+  border-radius: 0;
+  margin: 15px;
+  border: 1px solid var(--accent-color);
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  position: relative;
 }
 
 label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   font-weight: bold;
   color: var(--accent-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 input, select {
   width: 100%;
-  padding: 10px 15px;
-  background-color: var(--secondary-color);
-  border: 1px solid var(--accent-color);
+  padding: 12px 15px;
+  background-color: rgba(44, 44, 44, 0.9);
+  border: 2px solid var(--accent-color);
   color: var(--text-color);
-  font-family: 'Courier Prime', monospace;
+  font-family: 'Special Elite', cursive;
   font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
 input:focus, select:focus {
   outline: none;
-  box-shadow: 0 0 0 2px var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(181, 166, 66, 0.3);
+  background-color: rgba(44, 44, 44, 1);
 }
 
 /* Section styles */
 .section {
   padding-bottom: 20px;
+  position: relative;
 }
 
 .hidden {
@@ -193,73 +268,101 @@ input:focus, select:focus {
 }
 
 .user-info {
-  margin-top: 10px;
+  margin-top: 15px;
   display: flex;
   justify-content: space-between;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  color: var(--accent-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
 }
 
 .service-buttons {
   display: flex;
-  gap: 10px;
-  padding: 0 20px;
+  gap: 15px;
+  padding: 0 25px;
 }
 
-.service-info, .service-history, .admin-controls, .user-hours-display {
-  padding: 15px 20px;
-  background-color: rgba(58, 58, 60, 0.5);
-  margin: 15px 20px;
-  border: 1px solid var(--accent-color);
+.service-info, 
+.service-history, 
+.admin-controls, 
+.user-hours-display {
+  padding: 20px;
+  background-color: rgba(44, 44, 44, 0.8);
+  margin: 20px;
+  border: 2px solid var(--accent-color);
+  position: relative;
 }
 
-.service-info p, .total-hours p {
-  margin-bottom: 5px;
+.service-info p, 
+.total-hours p {
+  margin-bottom: 8px;
   display: flex;
   justify-content: space-between;
+  font-size: 1.1rem;
 }
 
-.service-history h2, .user-hours-display h2 {
+.service-history h2, 
+.user-hours-display h2 {
   color: var(--accent-color);
-  font-size: 1.2rem;
-  margin-bottom: 10px;
+  font-size: 1.3rem;
+  margin-bottom: 15px;
   text-align: center;
-  font-family: 'Special Elite', cursive;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-.history-container, .hours-container {
-  max-height: 200px;
+.history-container, 
+.hours-container {
+  max-height: 300px;
   overflow-y: auto;
-  border: 1px solid var(--accent-color);
-  padding: 5px;
-  background-color: rgba(18, 18, 18, 0.7);
+  border: 2px solid var(--accent-color);
+  padding: 10px;
+  background-color: rgba(28, 28, 28, 0.9);
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) var(--secondary-color);
 }
 
-.history-entry, .hours-entry {
-  padding: 8px;
-  border-bottom: 1px solid var(--secondary-color);
-  font-size: 0.9rem;
+.history-entry, 
+.hours-entry {
+  padding: 12px;
+  border-bottom: 1px solid var(--accent-color);
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
 }
 
-.history-entry:last-child, .hours-entry:last-child {
+.history-entry:hover, 
+.hours-entry:hover {
+  background-color: rgba(181, 166, 66, 0.1);
+}
+
+.history-entry:last-child, 
+.hours-entry:last-child {
   border-bottom: none;
 }
 
 .admin-controls {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
 }
 
-.user-selection, .admin-actions, .admin-user-actions {
+.user-selection, 
+.admin-actions, 
+.admin-user-actions {
   width: 100%;
 }
 
-.admin-actions, .admin-user-actions {
+.admin-actions, 
+.admin-user-actions {
   display: flex;
-  gap: 10px;
+  gap: 15px;
 }
 
-#logout-btn, #admin-logout-btn {
+#logout-btn, 
+#admin-logout-btn {
   margin: 0 20px;
 }
 
@@ -269,72 +372,113 @@ input:focus, select:focus {
   text-align: center;
   margin-bottom: 20px;
   font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 /* Info text */
 .info-text {
   color: var(--accent-color);
   font-size: 0.9rem;
-  margin-top: 5px;
+  margin-top: 8px;
   font-style: italic;
 }
 
 /* Footer styles */
 footer {
-  margin-top: 20px;
+  margin-top: 30px;
   text-align: center;
   color: var(--accent-color);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   width: 100%;
+  padding: 15px;
+  background-color: rgba(28, 28, 28, 0.8);
+  border-top: 2px solid var(--accent-color);
 }
 
 /* Regiment header styles */
 .regiment-header {
   background-color: var(--secondary-color);
-  padding: 10px;
-  margin-top: 15px;
+  padding: 15px;
+  margin-top: 20px;
   border-bottom: 2px solid var(--accent-color);
+  position: relative;
+}
+
+.regiment-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('https://images.pexels.com/photos/87651/earth-blue-planet-globe-planet-87651.jpeg') center/cover;
+  opacity: 0.1;
+  z-index: 0;
 }
 
 .regiment-header h3 {
   color: var(--accent-color);
   font-family: 'Special Elite', cursive;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .regiment-header button {
-  margin: 5px 0;
+  margin: 8px 0;
+  position: relative;
+  z-index: 1;
 }
 
 /* Responsive design */
 @media (max-width: 768px) {
   .container {
     max-width: 100%;
+    margin: 10px;
   }
   
   .military-header h1 {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
   }
   
-  .service-buttons {
-    flex-direction: column;
-  }
-  
-  .admin-actions, .admin-user-actions {
+  .service-buttons,
+  .admin-actions,
+  .admin-user-actions {
     flex-direction: column;
   }
   
   .user-info {
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  .military-btn {
+    font-size: 1rem;
+    padding: 10px 20px;
+  }
+  
+  .form-container,
+  .service-info,
+  .service-history,
+  .admin-controls,
+  .user-hours-display {
+    padding: 15px;
+    margin: 10px;
   }
 }
 
 /* Animations */
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(211, 47, 47, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(74, 92, 59, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(74, 92, 59, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(74, 92, 59, 0); }
 }
 
 #start-service-btn:not(.disabled) {
@@ -352,6 +496,7 @@ footer {
 
 ::-webkit-scrollbar-thumb {
   background: var(--accent-color);
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -360,19 +505,20 @@ footer {
 
 /* Regiment selection styles */
 .regiment-select {
-  background-color: var(--secondary-color);
+  background-color: rgba(44, 44, 44, 0.9);
   color: var(--text-color);
-  border: 1px solid var(--accent-color);
-  padding: 10px;
+  border: 2px solid var(--accent-color);
+  padding: 12px;
   width: 100%;
-  font-family: 'Courier Prime', monospace;
+  font-family: 'Special Elite', cursive;
   margin-bottom: 15px;
+  cursor: pointer;
 }
 
 .regiment-select option {
   background-color: var(--secondary-color);
   color: var(--text-color);
-  padding: 5px;
+  padding: 8px;
 }
 
 /* Password reset styles */
@@ -380,12 +526,51 @@ footer {
   color: var(--accent-color);
   text-decoration: underline;
   cursor: pointer;
-  font-size: 0.9rem;
-  margin-top: 10px;
+  font-size: 1rem;
+  margin-top: 15px;
   display: block;
   text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: color 0.3s ease;
 }
 
 .reset-password-link:hover {
   color: var(--warning-color);
+}
+
+.military-footer {
+  margin-top: 30px;
+  text-align: center;
+  color: var(--accent-color);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  width: 100%;
+  padding: 15px;
+  background-color: var(--secondary-color);
+  border-top: 3px double var(--accent-color);
+  position: relative;
+}
+
+.footer-stamp {
+  position: absolute;
+  bottom: 10px;
+  left: 20px;
+  width: 60px;
+  height: 60px;
+  border: 2px solid var(--accent-color);
+  border-radius: 50%;
+  transform: rotate(15deg);
+  opacity: 0.5;
+}
+
+.footer-stamp::before {
+  content: 'CLASSIFIED';
+  font-size: 8px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--accent-color);
 }
