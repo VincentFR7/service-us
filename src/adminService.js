@@ -33,21 +33,32 @@ function getUserServiceDetails(username) {
   };
 }
 
-// Get all users' service information
+// Get all users' service information grouped by regiment
 function getAllUsersServiceInfo() {
   const users = getUsers();
-  return users.map(user => {
-    const history = getUserServiceHistory(user.fullname);
-    const totalDuration = calculateTotalServiceDuration(user.fullname);
-    
-    return {
-      fullname: user.fullname,
-      role: user.role,
-      regiment: user.regiment,
-      history: history,
-      totalDuration: totalDuration
-    };
+  const usersByRegiment = {};
+  
+  // Group users by regiment
+  users.forEach(user => {
+    if (user.role !== 'admin') { // Don't show admin hours
+      const history = getUserServiceHistory(user.fullname);
+      const totalDuration = calculateTotalServiceDuration(user.fullname);
+      
+      if (!usersByRegiment[user.regiment]) {
+        usersByRegiment[user.regiment] = [];
+      }
+      
+      usersByRegiment[user.regiment].push({
+        fullname: user.fullname,
+        role: user.role,
+        regiment: user.regiment,
+        history: history,
+        totalDuration: totalDuration
+      });
+    }
   });
+  
+  return usersByRegiment;
 }
 
 // Reset a user's service hours (admin only)
