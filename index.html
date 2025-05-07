@@ -14,7 +14,7 @@
     <!-- Login Section -->
     <div id="login-section" class="section">
       <div class="military-header">
-        <h1>ACCÈS PERSONNEL</h1>
+        <h1>MILITARY PERSONNEL ACCESS</h1>
         <div class="military-insignia"></div>
       </div>
       <div class="form-container">
@@ -48,6 +48,7 @@
           <select id="reg-regiment" class="regiment-select">
             <option value="">Sélectionnez votre régiment</option>
           </select>
+          <p class="info-text">Ce régiment sera utilisé comme réponse de sécurité pour la réinitialisation du mot de passe.</p>
         </div>
         <div class="form-group">
           <label for="reg-password">Mot de passe:</label>
@@ -74,6 +75,10 @@
           <input type="text" id="reset-fullname" placeholder="Entrez votre prénom et nom">
         </div>
         <div class="form-group">
+          <label for="reset-security-answer">Quel est votre premier régiment?</label>
+          <input type="text" id="reset-security-answer" placeholder="Entrez votre premier régiment">
+        </div>
+        <div class="form-group">
           <label for="reset-new-password">Nouveau mot de passe:</label>
           <input type="password" id="reset-new-password" placeholder="Entrez votre nouveau mot de passe">
         </div>
@@ -83,6 +88,26 @@
         </div>
         <button id="complete-reset-btn" class="military-btn">RÉINITIALISER LE MOT DE PASSE</button>
         <button id="back-to-login-from-reset-btn" class="military-btn secondary">RETOUR</button>
+      </div>
+    </div>
+
+    <!-- Force Password Change Section -->
+    <div id="force-password-change-section" class="section hidden">
+      <div class="military-header">
+        <h1>CHANGEMENT DE MOT DE PASSE REQUIS</h1>
+        <div class="military-insignia"></div>
+      </div>
+      <div class="form-container">
+        <p class="warning-text">Votre mot de passe a été réinitialisé par un administrateur. Vous devez le changer avant de continuer.</p>
+        <div class="form-group">
+          <label for="force-new-password">Nouveau mot de passe:</label>
+          <input type="password" id="force-new-password" placeholder="Entrez votre nouveau mot de passe">
+        </div>
+        <div class="form-group">
+          <label for="force-confirm-password">Confirmer le nouveau mot de passe:</label>
+          <input type="password" id="force-confirm-password" placeholder="Confirmez votre nouveau mot de passe">
+        </div>
+        <button id="complete-force-change-btn" class="military-btn">CHANGER LE MOT DE PASSE</button>
       </div>
     </div>
 
@@ -135,6 +160,17 @@
           <button id="reset-hours-btn" class="military-btn danger">RÉINITIALISER LES HEURES</button>
           <button id="reset-all-hours-btn" class="military-btn danger">RÉINITIALISER TOUTES LES HEURES</button>
         </div>
+        <div class="admin-user-actions">
+          <button id="delete-user-btn" class="military-btn danger">SUPPRIMER L'UTILISATEUR</button>
+          <button id="reset-user-password-btn" class="military-btn warning">RÉINITIALISER MOT DE PASSE</button>
+          <button id="toggle-moderator-btn" class="military-btn accent">TOGGLE MODÉRATEUR</button>
+        </div>
+        <div class="all-users-hours">
+          <h2>HEURES DE SERVICE - TOUS LES UTILISATEURS</h2>
+          <div id="all-users-hours-list" class="hours-container">
+            <!-- All users' hours will be displayed here -->
+          </div>
+        </div>
       </div>
       <div class="user-hours-display">
         <h2>HEURES DE SERVICE - <span id="selected-user">--</span></h2>
@@ -145,6 +181,7 @@
           <p>Total des heures: <span id="total-hours">00:00:00</span></p>
         </div>
       </div>
+      <button id="admin-logout-btn" class="military-btn secondary">DÉCONNEXION</button>
     </div>
   </div>
   
