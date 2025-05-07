@@ -7,7 +7,8 @@ import { getUsers } from './authService.js';
 import { 
   getUserServiceHistory, 
   resetUserServiceHistory,
-  calculateTotalServiceDuration
+  calculateTotalServiceDuration,
+  resetAllServiceHistory
 } from './serviceTracker.js';
 
 // Get all users for admin display
@@ -15,7 +16,8 @@ function getUsersForAdmin() {
   // Filter out sensitive information like passwords
   return getUsers().map(user => ({
     fullname: user.fullname,
-    role: user.role
+    role: user.role,
+    regiment: user.regiment
   }));
 }
 
@@ -37,6 +39,12 @@ function resetUserHours(username) {
   return { success: true, message: `Les heures de service de ${username} ont été réinitialisées.` };
 }
 
+// Reset all users' service hours (admin only)
+function resetAllHours() {
+  resetAllServiceHistory();
+  return { success: true, message: 'Les heures de service de tous les utilisateurs ont été réinitialisées.' };
+}
+
 // Get all users' service information (admin dashboard)
 function getAllUsersServiceInfo() {
   const users = getUsers();
@@ -48,6 +56,7 @@ function getAllUsersServiceInfo() {
     return {
       fullname: user.fullname,
       role: user.role,
+      regiment: user.regiment,
       recordCount: history.length,
       totalDuration
     };
@@ -58,5 +67,6 @@ export {
   getUsersForAdmin,
   getUserServiceDetails,
   resetUserHours,
+  resetAllHours,
   getAllUsersServiceInfo
 };
