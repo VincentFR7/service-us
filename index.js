@@ -34,6 +34,7 @@ import {
   getUserServiceDetails, 
   resetUserHours,
   resetAllHours,
+  resetRegimentHours,
   deleteUser,
   getAllUsersServiceInfo
 } from './src/adminService.js';
@@ -469,6 +470,18 @@ function handleResetAllHours() {
   }
 }
 
+// Handle admin resetting regiment hours
+function handleResetRegimentHours(regiment) {
+  if (confirm(`Êtes-vous sûr de vouloir réinitialiser les heures de service du régiment ${regiment}?`)) {
+    const result = resetRegimentHours(regiment);
+    if (result.success) {
+      alert(result.message);
+      loadUsersForAdmin();
+      loadAllUsersHours();
+    }
+  }
+}
+
 // Handle admin deleting a user
 function handleDeleteUser() {
   const selectedUsername = userSelect.value;
@@ -644,10 +657,10 @@ function loadUserServiceHistory(username) {
 
 // Load all users' hours for admin view
 function loadAllUsersHours() {
-  const usersByRegiment = getAllUsersServiceInfo();
+  const allUsers = getAllUsersServiceInfo();
   allUsersHoursList.innerHTML = '';
   
-  if (Object.keys(usersByRegiment).length === 0) {
+  if (Object.keys(allUsers).length === 0) {
     const emptyMessage = document.createElement('div');
     emptyMessage.className = 'hours-entry';
     emptyMessage.textContent = 'Aucun utilisateur trouvé';
@@ -656,17 +669,27 @@ function loadAllUsersHours() {
   }
   
   // Sort regiments alphabetically
-  const sortedRegiments = Object.keys(usersByRegiment).sort();
+  const sortedRegiments = Object.keys(allUsers).sort();
   
   sortedRegiments.forEach(regiment => {
     // Create regiment header
     const regimentHeader = document.createElement('div');
     regimentHeader.className = 'regiment-header';
-    regimentHeader.textContent = regiment;
+    regimentHeader.innerHTML = `
+      <h3>${regiment}</h3>
+      ${isAdmin(getCurrentUser()) ? 
+        `<button class="military-btn danger" onclick="window.handleResetRegimentHours('${regiment}')">
+          Réinitialiser les heures du régiment
+        </button>` : 
+        ''}
+    `;
     allUsersHoursList.appendChild(regimentHeader);
     
-    // Add users for this regiment
-    usersByRegiment[regiment].forEach(user => {
+    // Sort users by name within regiment
+    allUsers[regiment].sort((a, b) => a.fullname.localeCompare(b.fullname));
+    
+    // Add users
+    allUsers[regiment].forEach(user => {
       const entry = document.createElement('div');
       entry.className = 'hours-entry';
       entry.innerHTML = `
@@ -740,3 +763,6 @@ function loadUserHoursForAdmin(username) {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', initApp);
+
+// Make handleResetRegimentHours globally accessible
+window.handleResetRegimentHours = handleResetRegimentHours;
