@@ -6,7 +6,7 @@
 // Default admin credentials
 const DEFAULT_ADMINS = [
   { fullname: 'Vincent', password: 'admin', role: 'admin' },
-  { fullname: 'Admin', password: '1807US', role: 'admin' }
+  { fullname: 'Admin', password: 'admin', role: 'admin' }
 ];
 
 // Initialize users from localStorage or use defaults
@@ -37,6 +37,9 @@ function registerUser(fullname, password) {
   users.push({ fullname, password, role: 'user' });
   localStorage.setItem('serviceUsers', JSON.stringify(users));
   
+  // Save password separately for persistence
+  localStorage.setItem(`password_${fullname}`, password);
+  
   return { success: true };
 }
 
@@ -54,19 +57,40 @@ function saveUser(fullname, password, role = 'user') {
   }
   
   localStorage.setItem('serviceUsers', JSON.stringify(users));
+  
+  // Save password separately for persistence
+  localStorage.setItem(`password_${fullname}`, password);
+  
   return { fullname, role };
 }
 
 // Authenticate user
 function authenticateUser(fullname, password) {
   const users = getUsers();
+  const savedPassword = localStorage.getItem(`password_${fullname}`);
+  
+  // Check against saved password first
+  if (savedPassword === password) {
+    const user = users.find(u => u.fullname.toLowerCase() === fullname.toLowerCase());
+    if (user) {
+      sessionStorage.setItem('currentUser', JSON.stringify({
+        fullname: user.fullname,
+        role: user.role
+      }));
+      return { success: true, user: { fullname: user.fullname, role: user.role } };
+    }
+  }
+  
+  // Fall back to checking users array
   const user = users.find(u => 
     u.fullname.toLowerCase() === fullname.toLowerCase() && 
     u.password === password
   );
   
   if (user) {
-    // Set current user in session
+    // Save password for persistence
+    localStorage.setItem(`password_${fullname}`, password);
+    
     sessionStorage.setItem('currentUser', JSON.stringify({
       fullname: user.fullname,
       role: user.role
