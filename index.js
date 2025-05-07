@@ -20,7 +20,8 @@ import {
   calculateTotalServiceDuration, 
   getCurrentServiceStatus, 
   startService, 
-  endService 
+  endService,
+  isGModRunning 
 } from './src/serviceTracker.js';
 
 import { 
@@ -180,23 +181,27 @@ function handleLogin() {
 }
 
 // Handle start service button click
-function handleStartService() {
+async function handleStartService() {
   const user = getCurrentUser();
   if (!user) return;
   
-  const status = startService(user.fullname);
-  currentStartTime = status.startTime;
-  
-  // Update UI
-  startServiceBtn.classList.add('disabled');
-  endServiceBtn.classList.remove('disabled');
-  serviceStatusSpan.textContent = 'En service';
-  serviceStatusSpan.style.color = 'var(--success-color)';
-  serviceStartSpan.textContent = formatTime(new Date(status.startTime));
-  serviceEndSpan.textContent = '--:--:--';
-  
-  // Start timer
-  startServiceTimer(status.startTime);
+  try {
+    const status = await startService(user.fullname);
+    currentStartTime = status.startTime;
+    
+    // Update UI
+    startServiceBtn.classList.add('disabled');
+    endServiceBtn.classList.remove('disabled');
+    serviceStatusSpan.textContent = 'En service';
+    serviceStatusSpan.style.color = 'var(--success-color)';
+    serviceStartSpan.textContent = formatTime(new Date(status.startTime));
+    serviceEndSpan.textContent = '--:--:--';
+    
+    // Start timer
+    startServiceTimer(status.startTime);
+  } catch (error) {
+    alert(error.message);
+  }
 }
 
 // Handle end service button click
