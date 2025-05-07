@@ -39,15 +39,16 @@ function formatDuration(durationInSeconds) {
   ].join(':');
 }
 
-// Check if Garry's Mod is running
+// Check if connected to specific Garry's Mod server
 async function isGModRunning() {
   try {
+    // In a real implementation, this would check the actual server connection
     // For demo purposes, we'll check localStorage
-    // In production, this should use Steam Web API
-    const isRunning = localStorage.getItem('gmodRunning') === 'true';
+    const serverIP = "194.69.160.40:27015";
+    const isConnected = localStorage.getItem('gmodServerConnection') === serverIP;
     
-    // Force end service if game is not running
-    if (!isRunning) {
+    // Force end service if not connected to the correct server
+    if (!isConnected) {
       const users = JSON.parse(localStorage.getItem('serviceUsers') || '[]');
       users.forEach(user => {
         const status = getCurrentServiceStatus(user.fullname);
@@ -57,9 +58,9 @@ async function isGModRunning() {
       });
     }
     
-    return isRunning;
+    return isConnected;
   } catch (error) {
-    console.error('Error checking Garry\'s Mod status:', error);
+    console.error('Error checking server connection:', error);
     return false;
   }
 }
@@ -112,14 +113,14 @@ function getCurrentServiceStatus(username) {
 async function startService(username) {
   const gmodRunning = await isGModRunning();
   if (!gmodRunning) {
-    throw new Error('Garry\'s Mod n\'est pas en cours d\'exécution. Veuillez lancer le jeu pour prendre votre service.');
+    throw new Error('Vous devez être connecté au serveur 194.69.160.40:27015 pour prendre votre service.');
   }
 
   const now = new Date().getTime();
   const status = { isActive: true, startTime: now };
   localStorage.setItem(`serviceStatus_${username}`, JSON.stringify(status));
   
-  // Start monitoring Garry's Mod status
+  // Start monitoring server connection
   startGModMonitoring(username);
   
   return status;
@@ -145,25 +146,24 @@ function endService(username) {
   return record;
 }
 
-// Monitor Garry's Mod status
+// Monitor server connection
 let gmodMonitorInterval;
 
 function startGModMonitoring(username) {
   // Clear any existing interval
   stopGModMonitoring();
   
-  // Check every 5 seconds if Garry's Mod is still running
+  // Check every 5 seconds if still connected to the server
   gmodMonitorInterval = setInterval(async () => {
     const gmodRunning = await isGModRunning();
     if (!gmodRunning) {
-      // End service automatically if Garry's Mod is closed
       const status = getCurrentServiceStatus(username);
       if (status.isActive) {
         endService(username);
-        alert('Service terminé automatiquement : Garry\'s Mod n\'est plus en cours d\'exécution.');
+        alert('Service terminé automatiquement : Déconnecté du serveur 194.69.160.40:27015');
       }
     }
-  }, 5000); // Check every 5 seconds instead of 30
+  }, 5000);
 }
 
 function stopGModMonitoring() {
