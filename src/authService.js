@@ -6,7 +6,7 @@
 // Default admin credentials
 const DEFAULT_ADMINS = [
   { fullname: 'Vincent', password: 'admin', role: 'admin', regiment: '1st Infantry Division' },
-  { fullname: 'Gérance', password: 'admin0105', role: 'admin', regiment: '1st Infantry Division' }
+  { fullname: 'Gérance', password: 'admin01051', role: 'admin', regiment: '1st Infantry Division' }
 ];
 
 const REGIMENTS = [
