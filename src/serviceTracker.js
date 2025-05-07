@@ -40,37 +40,85 @@ function formatDuration(durationInSeconds) {
 }
 
 // Check if connected to specific Garry's Mod server
+let lastGameStatus = false;
+let gameCheckInterval;
+
+async function checkGameConnection() {
+  try {
+    // This would be replaced with actual game connection check in production
+    const response = await fetch('http://194.69.160.40:27015/info');
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 async function isGModRunning() {
   try {
-    const serverIP = "194.69.160.40:27015";
-    // For testing purposes, always return true
-    // In production, this should be replaced with actual server connection check
-    return true;
+    const isConnected = await checkGameConnection();
     
-    // Force end service if not connected to the correct server
-    if (!isConnected) {
+    // If game status changed from connected to disconnected
+    if (lastGameStatus && !isConnected) {
       const users = JSON.parse(localStorage.getItem('serviceUsers') || '[]');
       users.forEach(user => {
         const status = getCurrentServiceStatus(user.fullname);
         if (status.isActive) {
           endService(user.fullname);
+          alert(`Service terminé automatiquement pour ${user.fullname}: Déconnexion du serveur détectée`);
         }
       });
     }
+    
+    lastGameStatus = isConnected;
+    return isConnected;
   } catch (error) {
-    console.error('Error checking server connection:', error);
+    console.error('Error checking game connection:', error);
     return false;
   }
 }
 
+// Encrypt data before storing
+function encryptData(data, key) {
+  // Simple XOR encryption (replace with stronger encryption in production)
+  return btoa(
+    String.fromCharCode.apply(
+      null,
+      Array.from(data).map((char, i) => char.charCodeAt(0) ^ key.charCodeAt(i % key.length))
+    )
+  );
+}
+
+// Decrypt stored data
+function decryptData(encryptedData, key) {
+  // Simple XOR decryption (replace with stronger decryption in production)
+  return atob(encryptedData)
+    .split('')
+    .map((char, i) => String.fromCharCode(char.charCodeAt(0) ^ key.charCodeAt(i % key.length)))
+    .join('');
+}
+
+// Get encryption key (in production, this would be more secure)
+function getEncryptionKey() {
+  return 'military-service-tracker-2025';
+}
+
 // Get user's service history
 function getUserServiceHistory(username) {
-  const serviceHistoryJson = localStorage.getItem(`serviceHistory_${username}`);
-  return serviceHistoryJson ? JSON.parse(serviceHistoryJson) : [];
+  const key = getEncryptionKey();
+  const encryptedHistory = localStorage.getItem(`serviceHistory_${username}`);
+  if (!encryptedHistory) return [];
+  
+  try {
+    const decryptedHistory = decryptData(encryptedHistory, key);
+    return JSON.parse(decryptedHistory);
+  } catch {
+    return [];
+  }
 }
 
 // Add service record to user's history
 function addServiceRecord(username, startTime, endTime) {
+  const key = getEncryptionKey();
   const history = getUserServiceHistory(username);
   const duration = calculateDuration(startTime, endTime);
   
@@ -80,13 +128,47 @@ function addServiceRecord(username, startTime, endTime) {
     endTime: formatTime(new Date(endTime)),
     duration: duration,
     formattedDuration: formatDuration(duration),
-    timestamp: new Date().getTime() // For sorting
+    timestamp: new Date().getTime()
   };
   
   history.push(record);
-  localStorage.setItem(`serviceHistory_${username}`, JSON.stringify(history));
+  
+  // Encrypt and save history
+  const encryptedHistory = encryptData(JSON.stringify(history), key);
+  localStorage.setItem(`serviceHistory_${username}`, encryptedHistory);
+  
+  // Backup to IndexedDB
+  backupToIndexedDB(username, history);
   
   return record;
+}
+
+// Backup data to IndexedDB
+async function backupToIndexedDB(username, data) {
+  try {
+    const db = await openDB();
+    const tx = db.transaction('serviceBackup', 'readwrite');
+    const store = tx.objectStore('serviceBackup');
+    await store.put({ username, data, timestamp: Date.now() });
+    await tx.complete;
+  } catch (error) {
+    console.error('Backup failed:', error);
+  }
+}
+
+// Open IndexedDB connection
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('ServiceTrackerBackup', 1);
+    
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      db.createObjectStore('serviceBackup', { keyPath: 'username' });
+    };
+  });
 }
 
 // Reset user's service history
@@ -111,8 +193,19 @@ function calculateTotalServiceDuration(username) {
 
 // Get current service status
 function getCurrentServiceStatus(username) {
-  const statusJson = localStorage.getItem(`serviceStatus_${username}`);
-  return statusJson ? JSON.parse(statusJson) : { isActive: false, startTime: null };
+  const key = getEncryptionKey();
+  const encryptedStatus = localStorage.getItem(`serviceStatus_${username}`);
+  
+  if (!encryptedStatus) {
+    return { isActive: false, startTime: null };
+  }
+  
+  try {
+    const decryptedStatus = decryptData(encryptedStatus, key);
+    return JSON.parse(decryptedStatus);
+  } catch {
+    return { isActive: false, startTime: null };
+  }
 }
 
 // Start service for a user
@@ -124,7 +217,11 @@ async function startService(username) {
 
   const now = new Date().getTime();
   const status = { isActive: true, startTime: now };
-  localStorage.setItem(`serviceStatus_${username}`, JSON.stringify(status));
+  
+  // Encrypt and save status
+  const key = getEncryptionKey();
+  const encryptedStatus = encryptData(JSON.stringify(status), key);
+  localStorage.setItem(`serviceStatus_${username}`, encryptedStatus);
   
   // Start monitoring server connection
   startGModMonitoring(username);
@@ -141,10 +238,10 @@ function endService(username) {
   const record = addServiceRecord(username, status.startTime, now);
   
   // Reset the status
-  localStorage.setItem(`serviceStatus_${username}`, JSON.stringify({ 
-    isActive: false, 
-    startTime: null 
-  }));
+  const key = getEncryptionKey();
+  const newStatus = { isActive: false, startTime: null };
+  const encryptedStatus = encryptData(JSON.stringify(newStatus), key);
+  localStorage.setItem(`serviceStatus_${username}`, encryptedStatus);
   
   // Stop monitoring
   stopGModMonitoring();
@@ -153,29 +250,25 @@ function endService(username) {
 }
 
 // Monitor server connection
-let gmodMonitorInterval;
-
 function startGModMonitoring(username) {
-  // Clear any existing interval
   stopGModMonitoring();
   
-  // Check every 5 seconds if still connected to the server
-  gmodMonitorInterval = setInterval(async () => {
+  gameCheckInterval = setInterval(async () => {
     const gmodRunning = await isGModRunning();
     if (!gmodRunning) {
       const status = getCurrentServiceStatus(username);
       if (status.isActive) {
         endService(username);
-        alert('Service terminé automatiquement : Déconnecté du serveur 194.69.160.40:27015');
+        alert('Service terminé automatiquement : Déconnexion du serveur détectée');
       }
     }
-  }, 5000);
+  }, 30000); // Check every 30 seconds
 }
 
 function stopGModMonitoring() {
-  if (gmodMonitorInterval) {
-    clearInterval(gmodMonitorInterval);
-    gmodMonitorInterval = null;
+  if (gameCheckInterval) {
+    clearInterval(gameCheckInterval);
+    gameCheckInterval = null;
   }
 }
 
