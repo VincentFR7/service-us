@@ -288,6 +288,24 @@ footer {
   width: 100%;
 }
 
+/* Regiment header styles */
+.regiment-header {
+  background-color: var(--secondary-color);
+  padding: 10px;
+  margin-top: 15px;
+  border-bottom: 2px solid var(--accent-color);
+}
+
+.regiment-header h3 {
+  color: var(--accent-color);
+  font-family: 'Special Elite', cursive;
+  margin-bottom: 10px;
+}
+
+.regiment-header button {
+  margin: 5px 0;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .container {
@@ -370,20 +388,4 @@ footer {
 
 .reset-password-link:hover {
   color: var(--warning-color);
-}
-
-/* Regiment grouping styles */
-.regiment-header {
-  background-color: var(--secondary-color);
-  color: var(--accent-color);
-  padding: 10px;
-  font-family: 'Special Elite', cursive;
-  font-size: 1.1rem;
-  text-transform: uppercase;
-  border-bottom: 1px solid var(--accent-color);
-  margin-top: 10px;
-}
-
-.regiment-header:first-child {
-  margin-top: 0;
 }
