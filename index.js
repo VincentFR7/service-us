@@ -9,7 +9,8 @@ import {
   saveUser, 
   getCurrentUser, 
   logout, 
-  isAdmin 
+  isAdmin,
+  registerUser 
 } from './src/authService.js';
 
 import { 
@@ -30,12 +31,20 @@ import {
 
 // DOM elements
 const loginSection = document.getElementById('login-section');
+const registerSection = document.getElementById('register-section');
 const serviceSection = document.getElementById('service-section');
 const adminSection = document.getElementById('admin-section');
 
 const fullnameInput = document.getElementById('fullname');
 const passwordInput = document.getElementById('password');
 const loginBtn = document.getElementById('login-btn');
+const registerBtn = document.getElementById('register-btn');
+
+const regFullnameInput = document.getElementById('reg-fullname');
+const regPasswordInput = document.getElementById('reg-password');
+const regConfirmPasswordInput = document.getElementById('reg-confirm-password');
+const completeRegisterBtn = document.getElementById('complete-register-btn');
+const backToLoginBtn = document.getElementById('back-to-login-btn');
 
 const userFullnameSpan = document.getElementById('user-fullname');
 const serviceStatusSpan = document.getElementById('service-status');
@@ -70,6 +79,19 @@ function initApp() {
 function addEventListeners() {
   // Login events
   loginBtn.addEventListener('click', handleLogin);
+  registerBtn.addEventListener('click', () => {
+    loginSection.classList.add('hidden');
+    registerSection.classList.remove('hidden');
+    regFullnameInput.focus();
+  });
+  
+  // Registration events
+  completeRegisterBtn.addEventListener('click', handleRegistration);
+  backToLoginBtn.addEventListener('click', () => {
+    registerSection.classList.add('hidden');
+    loginSection.classList.remove('hidden');
+    fullnameInput.focus();
+  });
   
   // Service tracking events
   startServiceBtn.addEventListener('click', handleStartService);
@@ -85,6 +107,46 @@ function addEventListeners() {
   passwordInput.addEventListener('keyup', (e) => {
     if (e.key === 'Enter') handleLogin();
   });
+  
+  // Enter key on registration form
+  regConfirmPasswordInput.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') handleRegistration();
+  });
+}
+
+// Handle registration button click
+function handleRegistration() {
+  const fullname = regFullnameInput.value.trim();
+  const password = regPasswordInput.value.trim();
+  const confirmPassword = regConfirmPasswordInput.value.trim();
+  
+  if (!fullname || !password || !confirmPassword) {
+    alert('Veuillez remplir tous les champs');
+    return;
+  }
+  
+  if (password !== confirmPassword) {
+    alert('Les mots de passe ne correspondent pas');
+    return;
+  }
+  
+  const result = registerUser(fullname, password);
+  
+  if (result.success) {
+    alert('Inscription réussie! Vous pouvez maintenant vous connecter.');
+    registerSection.classList.add('hidden');
+    loginSection.classList.remove('hidden');
+    fullnameInput.value = fullname;
+    passwordInput.value = '';
+    passwordInput.focus();
+    
+    // Clear registration form
+    regFullnameInput.value = '';
+    regPasswordInput.value = '';
+    regConfirmPasswordInput.value = '';
+  } else {
+    alert(result.message);
+  }
 }
 
 // Handle login button click
@@ -243,6 +305,7 @@ function checkAuthenticationStatus() {
 // Show login screen
 function showLoginScreen() {
   loginSection.classList.remove('hidden');
+  registerSection.classList.add('hidden');
   serviceSection.classList.add('hidden');
   adminSection.classList.add('hidden');
   fullnameInput.focus();
@@ -277,6 +340,7 @@ function showServiceDashboard(user) {
   
   // Show service section
   loginSection.classList.add('hidden');
+  registerSection.classList.add('hidden');
   serviceSection.classList.remove('hidden');
   adminSection.classList.add('hidden');
 }
@@ -291,6 +355,7 @@ function showAdminDashboard(user) {
   
   // Show admin section
   loginSection.classList.add('hidden');
+  registerSection.classList.add('hidden');
   serviceSection.classList.add('hidden');
   adminSection.classList.remove('hidden');
 }
