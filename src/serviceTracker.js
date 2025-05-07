@@ -42,8 +42,6 @@ function formatDuration(durationInSeconds) {
 // Check if connected to specific Garry's Mod server
 async function isGModRunning() {
   try {
-    // In a real implementation, this would check the actual server connection
-    // For demo purposes, we'll check localStorage
     const serverIP = "194.69.160.40:27015";
     const isConnected = localStorage.getItem('gmodServerConnection') === serverIP;
     
@@ -94,6 +92,14 @@ function addServiceRecord(username, startTime, endTime) {
 // Reset user's service history
 function resetUserServiceHistory(username) {
   localStorage.removeItem(`serviceHistory_${username}`);
+}
+
+// Reset all users' service history
+function resetAllServiceHistory() {
+  const users = JSON.parse(localStorage.getItem('serviceUsers') || '[]');
+  users.forEach(user => {
+    resetUserServiceHistory(user.fullname);
+  });
 }
 
 // Calculate total service duration for a user
@@ -181,6 +187,7 @@ export {
   getUserServiceHistory,
   addServiceRecord,
   resetUserServiceHistory,
+  resetAllServiceHistory,
   calculateTotalServiceDuration,
   getCurrentServiceStatus,
   startService,
