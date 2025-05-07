@@ -14,13 +14,13 @@
     <!-- Login Section -->
     <div id="login-section" class="section">
       <div class="military-header">
-        <h1>ACCÈS PERSONNEL</h1>
+        <h1>MILITARY PERSONNEL ACCESS</h1>
         <div class="military-insignia"></div>
       </div>
       <div class="form-container">
         <div class="form-group">
           <label for="fullname">Prénom et Nom RP:</label>
-          <input type="text" id="fullname" placeholder="Entrez votre prénom et nom">
+          <input type="text" id="fullname" placeholder="Entrez votre prénom et nom" readonly>
         </div>
         <div class="form-group">
           <label for="password">Mot de passe:</label>
@@ -28,6 +28,7 @@
         </div>
         <button id="login-btn" class="military-btn">AUTHENTIFICATION</button>
         <button id="register-btn" class="military-btn secondary">INSCRIPTION</button>
+        <a id="reset-password-link" class="reset-password-link">Mot de passe oublié?</a>
       </div>
     </div>
 
@@ -43,6 +44,12 @@
           <input type="text" id="reg-fullname" placeholder="Entrez votre prénom et nom">
         </div>
         <div class="form-group">
+          <label for="reg-regiment">Régiment:</label>
+          <select id="reg-regiment" class="regiment-select">
+            <option value="">Sélectionnez votre régiment</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label for="reg-password">Mot de passe:</label>
           <input type="password" id="reg-password" placeholder="Créez votre mot de passe">
         </div>
@@ -55,12 +62,37 @@
       </div>
     </div>
 
+    <!-- Password Reset Section -->
+    <div id="reset-password-section" class="section hidden">
+      <div class="military-header">
+        <h1>RÉINITIALISATION DU MOT DE PASSE</h1>
+        <div class="military-insignia"></div>
+      </div>
+      <div class="form-container">
+        <div class="form-group">
+          <label for="reset-fullname">Prénom et Nom RP:</label>
+          <input type="text" id="reset-fullname" placeholder="Entrez votre prénom et nom">
+        </div>
+        <div class="form-group">
+          <label for="reset-new-password">Nouveau mot de passe:</label>
+          <input type="password" id="reset-new-password" placeholder="Entrez votre nouveau mot de passe">
+        </div>
+        <div class="form-group">
+          <label for="reset-confirm-password">Confirmer le nouveau mot de passe:</label>
+          <input type="password" id="reset-confirm-password" placeholder="Confirmez votre nouveau mot de passe">
+        </div>
+        <button id="complete-reset-btn" class="military-btn">RÉINITIALISER LE MOT DE PASSE</button>
+        <button id="back-to-login-from-reset-btn" class="military-btn secondary">RETOUR</button>
+      </div>
+    </div>
+
     <!-- Service Section -->
     <div id="service-section" class="section hidden">
       <div class="military-header">
         <h1>SERVICE ACTIF</h1>
         <div class="user-info">
           <p>Personnel: <span id="user-fullname"></span></p>
+          <p>Régiment: <span id="user-regiment"></span></p>
           <p>Statut: <span id="service-status">Hors service</span></p>
         </div>
       </div>
@@ -72,6 +104,7 @@
         <p>Début de service: <span id="service-start">--:--:--</span></p>
         <p>Fin de service: <span id="service-end">--:--:--</span></p>
         <p>Durée totale: <span id="service-duration">00:00:00</span></p>
+        <p>Heures totales: <span id="total-service-hours">00:00:00</span></p>
       </div>
       <div class="service-history">
         <h2>HISTORIQUE DE SERVICE</h2>
@@ -100,6 +133,7 @@
         <div class="admin-actions">
           <button id="view-hours-btn" class="military-btn">VOIR LES HEURES</button>
           <button id="reset-hours-btn" class="military-btn danger">RÉINITIALISER LES HEURES</button>
+          <button id="reset-all-hours-btn" class="military-btn danger">RÉINITIALISER TOUTES LES HEURES</button>
         </div>
       </div>
       <div class="user-hours-display">
@@ -111,7 +145,6 @@
           <p>Total des heures: <span id="total-hours">00:00:00</span></p>
         </div>
       </div>
-      <button id="admin-logout-btn" class="military-btn secondary">RETOUR AU SERVICE</button>
     </div>
   </div>
   
