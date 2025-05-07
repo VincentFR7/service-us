@@ -19,7 +19,7 @@
 
 body {
   font-family: 'Courier Prime', monospace;
-  background-color: var(--background-color);
+  background-color: #000000;
   color: var(--text-color);
   line-height: 1.6;
   min-height: 100vh;
