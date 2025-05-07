@@ -73,6 +73,24 @@ function resetAllHours() {
   return { success: true, message: 'Les heures de service de tous les utilisateurs ont été réinitialisées.' };
 }
 
+// Reset service hours for a specific regiment (admin only)
+function resetRegimentHours(regiment) {
+  const users = getUsers();
+  let resetCount = 0;
+  
+  users.forEach(user => {
+    if (user.regiment === regiment && user.role !== 'admin') {
+      resetUserServiceHistory(user.fullname);
+      resetCount++;
+    }
+  });
+  
+  return { 
+    success: true, 
+    message: `Les heures de service de ${resetCount} membres du régiment ${regiment} ont été réinitialisées.` 
+  };
+}
+
 // Delete a user account (admin only)
 function deleteUser(username) {
   const users = getUsers();
@@ -96,6 +114,7 @@ export {
   getUserServiceDetails,
   resetUserHours,
   resetAllHours,
+  resetRegimentHours,
   getAllUsersServiceInfo,
   deleteUser
 };
