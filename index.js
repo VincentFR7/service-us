@@ -10,7 +10,9 @@ import {
   getCurrentUser, 
   logout, 
   isAdmin,
-  registerUser 
+  registerUser,
+  resetPassword,
+  getRegiments
 } from './src/authService.js';
 
 import { 
@@ -27,12 +29,14 @@ import {
 import { 
   getUsersForAdmin, 
   getUserServiceDetails, 
-  resetUserHours 
+  resetUserHours,
+  resetAllHours
 } from './src/adminService.js';
 
 // DOM elements
 const loginSection = document.getElementById('login-section');
 const registerSection = document.getElementById('register-section');
+const resetPasswordSection = document.getElementById('reset-password-section');
 const serviceSection = document.getElementById('service-section');
 const adminSection = document.getElementById('admin-section');
 
@@ -40,20 +44,30 @@ const fullnameInput = document.getElementById('fullname');
 const passwordInput = document.getElementById('password');
 const loginBtn = document.getElementById('login-btn');
 const registerBtn = document.getElementById('register-btn');
+const resetPasswordLink = document.getElementById('reset-password-link');
 
 const regFullnameInput = document.getElementById('reg-fullname');
+const regRegimentSelect = document.getElementById('reg-regiment');
 const regPasswordInput = document.getElementById('reg-password');
 const regConfirmPasswordInput = document.getElementById('reg-confirm-password');
 const completeRegisterBtn = document.getElementById('complete-register-btn');
 const backToLoginBtn = document.getElementById('back-to-login-btn');
 
+const resetFullnameInput = document.getElementById('reset-fullname');
+const resetNewPasswordInput = document.getElementById('reset-new-password');
+const resetConfirmPasswordInput = document.getElementById('reset-confirm-password');
+const completeResetBtn = document.getElementById('complete-reset-btn');
+const backToLoginFromResetBtn = document.getElementById('back-to-login-from-reset-btn');
+
 const userFullnameSpan = document.getElementById('user-fullname');
+const userRegimentSpan = document.getElementById('user-regiment');
 const serviceStatusSpan = document.getElementById('service-status');
 const startServiceBtn = document.getElementById('start-service-btn');
 const endServiceBtn = document.getElementById('end-service-btn');
 const serviceStartSpan = document.getElementById('service-start');
 const serviceEndSpan = document.getElementById('service-end');
 const serviceDurationSpan = document.getElementById('service-duration');
+const totalServiceHoursSpan = document.getElementById('total-service-hours');
 const historyList = document.getElementById('history-list');
 const logoutBtn = document.getElementById('logout-btn');
 
@@ -61,10 +75,10 @@ const adminFullnameSpan = document.getElementById('admin-fullname');
 const userSelect = document.getElementById('user-select');
 const viewHoursBtn = document.getElementById('view-hours-btn');
 const resetHoursBtn = document.getElementById('reset-hours-btn');
+const resetAllHoursBtn = document.getElementById('reset-all-hours-btn');
 const selectedUserSpan = document.getElementById('selected-user');
 const userHoursList = document.getElementById('user-hours-list');
 const totalHoursSpan = document.getElementById('total-hours');
-const adminLogoutBtn = document.getElementById('admin-logout-btn');
 
 // Timer variables
 let serviceTimer;
@@ -73,6 +87,7 @@ let currentStartTime;
 // Initialize the application
 function initApp() {
   addEventListeners();
+  populateRegiments();
   checkAuthenticationStatus();
 }
 
@@ -86,10 +101,24 @@ function addEventListeners() {
     regFullnameInput.focus();
   });
   
+  resetPasswordLink.addEventListener('click', () => {
+    loginSection.classList.add('hidden');
+    resetPasswordSection.classList.remove('hidden');
+    resetFullnameInput.focus();
+  });
+  
   // Registration events
   completeRegisterBtn.addEventListener('click', handleRegistration);
   backToLoginBtn.addEventListener('click', () => {
     registerSection.classList.add('hidden');
+    loginSection.classList.remove('hidden');
+    fullnameInput.focus();
+  });
+  
+  // Password reset events
+  completeResetBtn.addEventListener('click', handlePasswordReset);
+  backToLoginFromResetBtn.addEventListener('click', () => {
+    resetPasswordSection.classList.add('hidden');
     loginSection.classList.remove('hidden');
     fullnameInput.focus();
   });
@@ -102,26 +131,43 @@ function addEventListeners() {
   // Admin events
   viewHoursBtn.addEventListener('click', handleViewUserHours);
   resetHoursBtn.addEventListener('click', handleResetUserHours);
-  adminLogoutBtn.addEventListener('click', handleAdminLogout);
+  resetAllHoursBtn.addEventListener('click', handleResetAllHours);
   
-  // Enter key on login form
+  // Enter key handlers
   passwordInput.addEventListener('keyup', (e) => {
     if (e.key === 'Enter') handleLogin();
   });
   
-  // Enter key on registration form
   regConfirmPasswordInput.addEventListener('keyup', (e) => {
     if (e.key === 'Enter') handleRegistration();
+  });
+  
+  resetConfirmPasswordInput.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') handlePasswordReset();
+  });
+}
+
+// Populate regiment select options
+function populateRegiments() {
+  const regiments = getRegiments();
+  regRegimentSelect.innerHTML = '<option value="">Sélectionnez votre régiment</option>';
+  
+  regiments.forEach(regiment => {
+    const option = document.createElement('option');
+    option.value = regiment;
+    option.textContent = regiment;
+    regRegimentSelect.appendChild(option);
   });
 }
 
 // Handle registration button click
 function handleRegistration() {
   const fullname = regFullnameInput.value.trim();
+  const regiment = regRegimentSelect.value.trim();
   const password = regPasswordInput.value.trim();
   const confirmPassword = regConfirmPasswordInput.value.trim();
   
-  if (!fullname || !password || !confirmPassword) {
+  if (!fullname || !regiment || !password || !confirmPassword) {
     alert('Veuillez remplir tous les champs');
     return;
   }
@@ -131,7 +177,7 @@ function handleRegistration() {
     return;
   }
   
-  const result = registerUser(fullname, password);
+  const result = registerUser(fullname, password, regiment);
   
   if (result.success) {
     alert('Inscription réussie! Vous pouvez maintenant vous connecter.');
@@ -143,8 +189,43 @@ function handleRegistration() {
     
     // Clear registration form
     regFullnameInput.value = '';
+    regRegimentSelect.value = '';
     regPasswordInput.value = '';
     regConfirmPasswordInput.value = '';
+  } else {
+    alert(result.message);
+  }
+}
+
+// Handle password reset
+function handlePasswordReset() {
+  const fullname = resetFullnameInput.value.trim();
+  const newPassword = resetNewPasswordInput.value.trim();
+  const confirmPassword = resetConfirmPasswordInput.value.trim();
+  
+  if (!fullname || !newPassword || !confirmPassword) {
+    alert('Veuillez remplir tous les champs');
+    return;
+  }
+  
+  if (newPassword !== confirmPassword) {
+    alert('Les mots de passe ne correspondent pas');
+    return;
+  }
+  
+  const result = resetPassword(fullname, newPassword);
+  
+  if (result.success) {
+    alert(result.message);
+    resetPasswordSection.classList.add('hidden');
+    loginSection.classList.remove('hidden');
+    fullnameInput.value = fullname;
+    passwordInput.focus();
+    
+    // Clear reset form
+    resetFullnameInput.value = '';
+    resetNewPasswordInput.value = '';
+    resetConfirmPasswordInput.value = '';
   } else {
     alert(result.message);
   }
@@ -164,9 +245,9 @@ function handleLogin() {
   
   if (authResult.success) {
     // Save/update user in case password changed
-    saveUser(fullname, password, authResult.user.role);
+    saveUser(fullname, password, authResult.user.regiment, authResult.user.role);
     
-    // Navigate to the correct section
+    // Navigate to admin section if admin
     if (isAdmin(authResult.user)) {
       showAdminDashboard(authResult.user);
     } else {
@@ -273,11 +354,14 @@ function handleResetUserHours() {
   }
 }
 
-// Handle admin logout back to service dashboard
-function handleAdminLogout() {
-  const user = getCurrentUser();
-  if (user) {
-    showServiceDashboard(user);
+// Handle admin resetting all users' hours
+function handleResetAllHours() {
+  if (confirm('Êtes-vous sûr de vouloir réinitialiser les heures de service de TOUS les utilisateurs?')) {
+    const result = resetAllHours();
+    if (result.success) {
+      alert(result.message);
+      loadUsersForAdmin();
+    }
   }
 }
 
@@ -311,6 +395,7 @@ function checkAuthenticationStatus() {
 function showLoginScreen() {
   loginSection.classList.remove('hidden');
   registerSection.classList.add('hidden');
+  resetPasswordSection.classList.add('hidden');
   serviceSection.classList.add('hidden');
   adminSection.classList.add('hidden');
   fullnameInput.focus();
@@ -320,6 +405,7 @@ function showLoginScreen() {
 function showServiceDashboard(user) {
   // Update UI elements
   userFullnameSpan.textContent = user.fullname;
+  userRegimentSpan.textContent = user.regiment;
   
   // Check if service is already active
   const status = getCurrentServiceStatus(user.fullname);
@@ -340,12 +426,16 @@ function showServiceDashboard(user) {
     serviceDurationSpan.textContent = '00:00:00';
   }
   
+  // Update total service hours
+  totalServiceHoursSpan.textContent = calculateTotalServiceDuration(user.fullname);
+  
   // Load service history
   loadUserServiceHistory(user.fullname);
   
   // Show service section
   loginSection.classList.add('hidden');
   registerSection.classList.add('hidden');
+  resetPasswordSection.classList.add('hidden');
   serviceSection.classList.remove('hidden');
   adminSection.classList.add('hidden');
 }
@@ -361,6 +451,7 @@ function showAdminDashboard(user) {
   // Show admin section
   loginSection.classList.add('hidden');
   registerSection.classList.add('hidden');
+  resetPasswordSection.classList.add('hidden');
   serviceSection.classList.add('hidden');
   adminSection.classList.remove('hidden');
 }
@@ -394,7 +485,7 @@ function loadUserServiceHistory(username) {
   
   // Update total duration
   const totalDuration = calculateTotalServiceDuration(username);
-  serviceDurationSpan.textContent = totalDuration;
+  totalServiceHoursSpan.textContent = totalDuration;
 }
 
 // Load users for admin dropdown
@@ -412,7 +503,7 @@ function loadUsersForAdmin() {
   users.forEach(user => {
     const option = document.createElement('option');
     option.value = user.fullname;
-    option.textContent = `${user.fullname} (${user.role === 'admin' ? 'Admin' : 'Utilisateur'})`;
+    option.textContent = `${user.fullname} (${user.regiment})`;
     userSelect.appendChild(option);
   });
   
