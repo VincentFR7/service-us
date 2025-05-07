@@ -6,7 +6,7 @@
 // Default admin credentials
 const DEFAULT_ADMINS = [
   { fullname: 'Vincent', password: 'admin', role: 'admin' },
-  { fullname: 'Field Admin', password: 'admin', role: 'admin' }
+  { fullname: 'Admin', password: '1807US', role: 'admin' }
 ];
 
 // Initialize users from localStorage or use defaults
