@@ -39,55 +39,8 @@ function formatDuration(durationInSeconds) {
   ].join(':');
 }
 
-// Check if connected to specific Garry's Mod server
-let lastGameStatus = false;
-let gameCheckInterval;
-
-async function checkGameConnection() {
-  // For development, always return true
-  return true;
-  
-  // In production, uncomment this code:
-  /*
-  try {
-    const response = await fetch('http://194.69.160.40:27015/info', {
-      mode: 'no-cors',
-      method: 'HEAD'
-    });
-    return true;
-  } catch {
-    return false;
-  }
-  */
-}
-
-async function isGModRunning() {
-  try {
-    const isConnected = await checkGameConnection();
-    
-    // If game status changed from connected to disconnected
-    if (lastGameStatus && !isConnected) {
-      const users = JSON.parse(localStorage.getItem('serviceUsers') || '[]');
-      users.forEach(user => {
-        const status = getCurrentServiceStatus(user.fullname);
-        if (status.isActive) {
-          endService(user.fullname);
-          alert(`Service terminé automatiquement pour ${user.fullname}: Déconnexion du serveur détectée`);
-        }
-      });
-    }
-    
-    lastGameStatus = isConnected;
-    return isConnected;
-  } catch (error) {
-    console.error('Error checking game connection:', error);
-    return true; // For development
-  }
-}
-
 // Encrypt data before storing
 function encryptData(data, key) {
-  // Simple XOR encryption (replace with stronger encryption in production)
   return btoa(
     String.fromCharCode.apply(
       null,
@@ -98,14 +51,13 @@ function encryptData(data, key) {
 
 // Decrypt stored data
 function decryptData(encryptedData, key) {
-  // Simple XOR decryption (replace with stronger decryption in production)
   return atob(encryptedData)
     .split('')
     .map((char, i) => String.fromCharCode(char.charCodeAt(0) ^ key.charCodeAt(i % key.length)))
     .join('');
 }
 
-// Get encryption key (in production, this would be more secure)
+// Get encryption key
 function getEncryptionKey() {
   return 'military-service-tracker-2025';
 }
@@ -220,11 +172,6 @@ function getCurrentServiceStatus(username) {
 
 // Start service for a user
 async function startService(username) {
-  const gmodRunning = await isGModRunning();
-  if (!gmodRunning) {
-    throw new Error('Vous devez être connecté au serveur pour prendre votre service.');
-  }
-
   const now = new Date().getTime();
   const status = { isActive: true, startTime: now };
   
@@ -232,9 +179,6 @@ async function startService(username) {
   const key = getEncryptionKey();
   const encryptedStatus = encryptData(JSON.stringify(status), key);
   localStorage.setItem(`serviceStatus_${username}`, encryptedStatus);
-  
-  // Start monitoring server connection
-  startGModMonitoring(username);
   
   return status;
 }
@@ -253,33 +197,7 @@ function endService(username) {
   const encryptedStatus = encryptData(JSON.stringify(newStatus), key);
   localStorage.setItem(`serviceStatus_${username}`, encryptedStatus);
   
-  // Stop monitoring
-  stopGModMonitoring();
-  
   return record;
-}
-
-// Monitor server connection
-function startGModMonitoring(username) {
-  stopGModMonitoring();
-  
-  gameCheckInterval = setInterval(async () => {
-    const gmodRunning = await isGModRunning();
-    if (!gmodRunning) {
-      const status = getCurrentServiceStatus(username);
-      if (status.isActive) {
-        endService(username);
-        alert('Service terminé automatiquement : Déconnexion du serveur détectée');
-      }
-    }
-  }, 30000); // Check every 30 seconds
-}
-
-function stopGModMonitoring() {
-  if (gameCheckInterval) {
-    clearInterval(gameCheckInterval);
-    gameCheckInterval = null;
-  }
 }
 
 export {
@@ -294,6 +212,5 @@ export {
   calculateTotalServiceDuration,
   getCurrentServiceStatus,
   startService,
-  endService,
-  isGModRunning
+  endService
 };
