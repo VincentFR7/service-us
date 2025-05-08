@@ -294,7 +294,7 @@ async function syncWithIndexedDB(currentUsers) {
     const store = tx.objectStore('users');
     
     // Get stored users from IndexedDB
-    const storedData = await store.get(1);
+    const storedData = await store.get('users');
     
     if (storedData && storedData.data) {
       // Merge users from localStorage and IndexedDB
@@ -308,10 +308,10 @@ async function syncWithIndexedDB(currentUsers) {
       
       // Update both storages
       localStorage.setItem('serviceUsers', JSON.stringify(mergedUsers));
-      await store.put({ id: 1, data: mergedUsers, timestamp: Date.now() });
+      await store.put({ id: 'users', data: mergedUsers, timestamp: Date.now() });
     } else {
       // Initial backup
-      await store.put({ id: 1, data: currentUsers, timestamp: Date.now() });
+      await store.put({ id: 'users', data: currentUsers, timestamp: Date.now() });
     }
     
     await tx.complete;
@@ -324,9 +324,9 @@ async function syncWithIndexedDB(currentUsers) {
 async function backupToIndexedDB(storeName, data) {
   try {
     const db = await openDB();
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
-    await store.put({ id: 1, data, timestamp: Date.now() });
+    const tx = db.transaction('users', 'readwrite');
+    const store = tx.objectStore('users');
+    await store.put({ id: storeName, data, timestamp: Date.now() });
     await tx.complete;
   } catch (error) {
     console.error('Backup failed:', error);
@@ -345,9 +345,6 @@ function openDB() {
       const db = event.target.result;
       if (!db.objectStoreNames.contains('users')) {
         db.createObjectStore('users', { keyPath: 'id' });
-      }
-      if (!db.objectStoreNames.contains('serviceBackup')) {
-        db.createObjectStore('serviceBackup', { keyPath: 'username' });
       }
     };
   });
