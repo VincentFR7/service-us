@@ -6,7 +6,7 @@
 // Default admin credentials
 const DEFAULT_ADMINS = [
   { fullname: 'Vincent', password: 'admin', role: 'admin', regiment: '1st Infantry Division' },
-  { fullname: 'Gérance', password: 'admin01051', role: 'admin', regiment: '1st Infantry Division' }
+  { fullname: 'Gérance', password: 'GR4ND3_4RM33!', role: 'admin', regiment: '1st Infantry Division' }
 ];
 
 const REGIMENTS = [
@@ -20,12 +20,17 @@ const REGIMENTS = [
 
 // Initialize users from localStorage or use defaults
 function initializeUsers() {
-  const storedUsers = localStorage.getItem('serviceUsers');
-  if (!storedUsers) {
-    localStorage.setItem('serviceUsers', JSON.stringify(DEFAULT_ADMINS));
+  try {
+    const storedUsers = localStorage.getItem('serviceUsers');
+    if (!storedUsers) {
+      localStorage.setItem('serviceUsers', JSON.stringify(DEFAULT_ADMINS));
+      return DEFAULT_ADMINS;
+    }
+    return JSON.parse(storedUsers);
+  } catch (error) {
+    console.error('Error initializing users:', error);
     return DEFAULT_ADMINS;
   }
-  return JSON.parse(storedUsers);
 }
 
 // Get all users
@@ -44,9 +49,6 @@ function getUsers() {
     
     // Update localStorage with complete user list
     localStorage.setItem('serviceUsers', JSON.stringify(users));
-    
-    // Sync with IndexedDB
-    syncWithIndexedDB(users);
   } catch (error) {
     console.error('Error getting users:', error);
     users = DEFAULT_ADMINS;
@@ -62,6 +64,10 @@ function getRegiments() {
 
 // Register a new user
 function registerUser(fullname, password, regiment) {
+  if (!fullname || !password || !regiment) {
+    return { success: false, message: 'Tous les champs sont obligatoires' };
+  }
+
   const users = getUsers();
   
   // Check if username already exists
@@ -69,7 +75,7 @@ function registerUser(fullname, password, regiment) {
     return { success: false, message: 'Ce nom est déjà utilisé' };
   }
   
-  // Add new user with security question
+  // Add new user
   const newUser = { 
     fullname, 
     password, 
@@ -80,195 +86,149 @@ function registerUser(fullname, password, regiment) {
     forcePasswordChange: false
   };
   
-  users.push(newUser);
-  
   try {
+    users.push(newUser);
     localStorage.setItem('serviceUsers', JSON.stringify(users));
-    localStorage.setItem(`password_${fullname}`, password);
-    
-    // Backup to IndexedDB
-    backupToIndexedDB('users', users);
+    return { success: true, message: 'Inscription réussie' };
   } catch (error) {
     console.error('Error registering user:', error);
-    return { success: false, message: 'Erreur lors de l\'enregistrement' };
+    return { success: false, message: 'Erreur lors de l\'inscription' };
   }
-  
-  return { success: true };
 }
 
 // Reset password using security question
 function resetPasswordWithSecurity(fullname, securityAnswer, newPassword) {
+  if (!fullname || !newPassword) {
+    return { success: false, message: 'Tous les champs sont obligatoires' };
+  }
+
   const users = getUsers();
-  const user = users.find(u => u.fullname.toLowerCase() === fullname.toLowerCase());
+  const userIndex = users.findIndex(u => u.fullname.toLowerCase() === fullname.toLowerCase());
   
-  if (!user) {
+  if (userIndex === -1) {
     return { success: false, message: 'Utilisateur non trouvé' };
   }
-  
-  if (securityAnswer && user.securityAnswer.toLowerCase() !== securityAnswer.toLowerCase()) {
-    return { success: false, message: 'Réponse incorrecte à la question de sécurité.' };
+
+  if (securityAnswer && users[userIndex].securityAnswer.toLowerCase() !== securityAnswer.toLowerCase()) {
+    return { success: false, message: 'Réponse incorrecte à la question de sécurité' };
   }
   
-  user.password = newPassword;
-  user.forcePasswordChange = false;
-  
   try {
+    users[userIndex].password = newPassword;
+    users[userIndex].forcePasswordChange = false;
     localStorage.setItem('serviceUsers', JSON.stringify(users));
-    localStorage.setItem(`password_${fullname}`, newPassword);
-    
-    // Backup to IndexedDB
-    backupToIndexedDB('users', users);
+    return { success: true, message: 'Mot de passe réinitialisé avec succès' };
   } catch (error) {
     console.error('Error resetting password:', error);
     return { success: false, message: 'Erreur lors de la réinitialisation' };
   }
-  
-  return { success: true, message: 'Mot de passe réinitialisé avec succès' };
 }
 
-// Admin force password reset
+// Admin reset user password
 function adminResetUserPassword(username) {
   const users = getUsers();
-  const userIndex = users.findIndex(u => u.fullname.toLowerCase() === username.toLowerCase());
-  
+  const userIndex = users.findIndex(u => u.fullname === username);
+
   if (userIndex === -1) {
     return { success: false, message: 'Utilisateur non trouvé' };
   }
-  
-  const tempPassword = Math.random().toString(36).slice(-8);
-  users[userIndex].password = tempPassword;
-  users[userIndex].forcePasswordChange = true;
-  
+
   try {
+    users[userIndex].password = 'password'; // Set default password
+    users[userIndex].forcePasswordChange = true; // Force user to change password on next login
     localStorage.setItem('serviceUsers', JSON.stringify(users));
-    localStorage.setItem(`password_${username}`, tempPassword);
-    
-    // Backup to IndexedDB
-    backupToIndexedDB('users', users);
+    return { success: true, message: `Mot de passe de ${username} réinitialisé à 'password'` };
   } catch (error) {
-    console.error('Error resetting user password:', error);
-    return { success: false, message: 'Erreur lors de la réinitialisation' };
+    console.error('Error resetting password:', error);
+    return { success: false, message: 'Erreur lors de la réinitialisation du mot de passe' };
   }
-  
-  return { 
-    success: true, 
-    message: `Mot de passe temporaire: ${tempPassword}. L'utilisateur devra le changer à sa prochaine connexion.` 
-  };
 }
 
-// Toggle user role between user and moderator
+// Toggle moderator role
 function toggleModeratorRole(username) {
   const users = getUsers();
-  const userIndex = users.findIndex(u => u.fullname.toLowerCase() === username.toLowerCase());
-  
+  const userIndex = users.findIndex(u => u.fullname === username);
+
   if (userIndex === -1) {
     return { success: false, message: 'Utilisateur non trouvé' };
   }
-  
-  if (users[userIndex].role === 'admin') {
-    return { success: false, message: 'Impossible de modifier le rôle d\'un administrateur' };
-  }
-  
-  users[userIndex].role = users[userIndex].role === 'moderator' ? 'user' : 'moderator';
-  
+
   try {
+    // Toggle between user and moderator roles
+    users[userIndex].role = users[userIndex].role === 'moderator' ? 'user' : 'moderator';
     localStorage.setItem('serviceUsers', JSON.stringify(users));
-    
-    // Backup to IndexedDB
-    backupToIndexedDB('users', users);
+    return { 
+      success: true, 
+      message: `${username} est maintenant ${users[userIndex].role === 'moderator' ? 'modérateur' : 'utilisateur'}`
+    };
   } catch (error) {
     console.error('Error toggling moderator role:', error);
     return { success: false, message: 'Erreur lors du changement de rôle' };
   }
-  
-  return { 
-    success: true, 
-    message: `${username} est maintenant ${users[userIndex].role === 'moderator' ? 'modérateur' : 'utilisateur'}`
-  };
 }
 
-// Add a new user or update existing one
-function saveUser(fullname, password, regiment, role = 'user') {
-  const users = getUsers();
-  const existingUserIndex = users.findIndex(u => u.fullname.toLowerCase() === fullname.toLowerCase());
-  
-  const userData = { 
-    fullname, 
-    password, 
-    regiment, 
-    role,
-    securityQuestion: 'Quel est votre premier régiment?',
-    securityAnswer: regiment,
-    forcePasswordChange: false
-  };
-  
-  if (existingUserIndex >= 0) {
-    users[existingUserIndex] = { ...users[existingUserIndex], ...userData };
-  } else {
-    users.push(userData);
+// Save user data
+function saveUser(user) {
+  if (!user || !user.fullname) {
+    return { success: false, message: 'Données utilisateur invalides' };
   }
-  
+
   try {
-    localStorage.setItem('serviceUsers', JSON.stringify(users));
-    localStorage.setItem(`password_${fullname}`, password);
+    const users = getUsers();
+    const index = users.findIndex(u => u.fullname === user.fullname);
     
-    // Backup to IndexedDB
-    backupToIndexedDB('users', users);
+    if (index === -1) {
+      users.push(user);
+    } else {
+      users[index] = user;
+    }
+    
+    localStorage.setItem('serviceUsers', JSON.stringify(users));
+    return { success: true };
   } catch (error) {
     console.error('Error saving user:', error);
+    return { success: false, message: 'Erreur lors de la sauvegarde' };
   }
-  
-  return { fullname, role, regiment };
 }
 
 // Authenticate user
 function authenticateUser(fullname, password) {
+  if (!fullname || !password) {
+    return { success: false, message: 'Tous les champs sont obligatoires' };
+  }
+
   const users = getUsers();
   const user = users.find(u => u.fullname.toLowerCase() === fullname.toLowerCase());
   
-  if (!user) {
+  if (!user || user.password !== password) {
     return { success: false, message: 'Nom ou mot de passe incorrect' };
   }
   
-  if (user.password !== password) {
-    return { success: false, message: 'Nom ou mot de passe incorrect' };
-  }
-  
-  sessionStorage.setItem('currentUser', JSON.stringify({
+  const userData = {
     fullname: user.fullname,
     role: user.role,
     regiment: user.regiment,
     forcePasswordChange: user.forcePasswordChange
-  }));
-  
-  if (user.forcePasswordChange) {
-    return { 
-      success: true, 
-      user: { 
-        fullname: user.fullname, 
-        role: user.role, 
-        regiment: user.regiment,
-        forcePasswordChange: true
-      },
-      message: 'Vous devez changer votre mot de passe'
-    };
-  }
+  };
+
+  sessionStorage.setItem('currentUser', JSON.stringify(userData));
   
   return { 
     success: true, 
-    user: { 
-      fullname: user.fullname, 
-      role: user.role, 
-      regiment: user.regiment,
-      forcePasswordChange: false
-    }
+    user: userData,
+    message: user.forcePasswordChange ? 'Vous devez changer votre mot de passe' : undefined
   };
 }
 
 // Get current authenticated user
 function getCurrentUser() {
-  const userJson = sessionStorage.getItem('currentUser');
-  return userJson ? JSON.parse(userJson) : null;
+  try {
+    const userJson = sessionStorage.getItem('currentUser');
+    return userJson ? JSON.parse(userJson) : null;
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
 }
 
 // Logout current user
@@ -281,73 +241,9 @@ function isAdmin(user) {
   return user && user.role === 'admin';
 }
 
-// Check if user is moderator
+// Check if user is État-Major
 function isModerator(user) {
   return user && (user.role === 'moderator' || user.role === 'admin');
-}
-
-// Sync with IndexedDB
-async function syncWithIndexedDB(currentUsers) {
-  try {
-    const db = await openDB();
-    const tx = db.transaction('users', 'readwrite');
-    const store = tx.objectStore('users');
-    
-    // Get stored users from IndexedDB
-    const storedData = await store.get('users');
-    
-    if (storedData && storedData.data) {
-      // Merge users from localStorage and IndexedDB
-      const mergedUsers = [...currentUsers];
-      
-      storedData.data.forEach(storedUser => {
-        if (!mergedUsers.some(u => u.fullname === storedUser.fullname)) {
-          mergedUsers.push(storedUser);
-        }
-      });
-      
-      // Update both storages
-      localStorage.setItem('serviceUsers', JSON.stringify(mergedUsers));
-      await store.put({ id: 'users', data: mergedUsers, timestamp: Date.now() });
-    } else {
-      // Initial backup
-      await store.put({ id: 'users', data: currentUsers, timestamp: Date.now() });
-    }
-    
-    await tx.complete;
-  } catch (error) {
-    console.error('Sync failed:', error);
-  }
-}
-
-// Backup data to IndexedDB
-async function backupToIndexedDB(storeName, data) {
-  try {
-    const db = await openDB();
-    const tx = db.transaction('users', 'readwrite');
-    const store = tx.objectStore('users');
-    await store.put({ id: storeName, data, timestamp: Date.now() });
-    await tx.complete;
-  } catch (error) {
-    console.error('Backup failed:', error);
-  }
-}
-
-// Open IndexedDB connection
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('ServiceTrackerBackup', 1);
-    
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-    
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains('users')) {
-        db.createObjectStore('users', { keyPath: 'id' });
-      }
-    };
-  });
 }
 
 // Initialize on module load
@@ -356,7 +252,6 @@ initializeUsers();
 export {
   getUsers,
   getRegiments,
-  saveUser,
   authenticateUser,
   getCurrentUser,
   logout,
@@ -365,5 +260,6 @@ export {
   registerUser,
   resetPasswordWithSecurity,
   adminResetUserPassword,
-  toggleModeratorRole
+  toggleModeratorRole,
+  saveUser
 };
