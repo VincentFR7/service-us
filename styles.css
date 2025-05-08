@@ -1,0 +1,629 @@
+/* Base styles and CSS reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+:root {
+  --primary-color: #3a3a2b; /* Military olive */
+  --secondary-color: #1a1a14; /* Dark military */
+  --accent-color: #8b7355; /* Military brass */
+  --background-color: #2a2a20; /* Dark olive */
+  --text-color: #c5c5b2; /* Aged paper */
+  --danger-color: #8b0000; /* Blood red */
+  --success-color: #4a5d23; /* Military green */
+  --warning-color: #8b7355; /* Brass */
+  --disabled-color: #4f4f4f;
+  --etat-major-color: #436b95;
+}
+
+body {
+  font-family: 'Special Elite', cursive;
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+}
+
+.military-paper {
+  background-color: var(--background-color);
+  border: 8px double var(--accent-color);
+  position: relative;
+}
+
+.container {
+  width: 100%;
+  max-width: 800px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+  position: relative;
+  overflow: hidden;
+}
+
+.stamp {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 100px;
+  height: 100px;
+  border: 3px solid var(--accent-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-15deg);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.stamp::before {
+  content: 'TOP SECRET';
+  font-size: 12px;
+  color: var(--accent-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.military-header {
+  background-color: var(--secondary-color);
+  padding: 30px;
+  border-bottom: 3px double var(--accent-color);
+  position: relative;
+}
+
+.military-header h1 {
+  font-family: 'Special Elite', cursive;
+  text-align: center;
+  color: var(--accent-color);
+  font-size: 1.8rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.military-insignia {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  background-color: var(--accent-color);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  box-shadow: 0 0 10px rgba(181, 166, 66, 0.5);
+}
+
+.military-btn {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  border: 2px solid var(--accent-color);
+  padding: 12px 24px;
+  font-family: 'Special Elite', cursive;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  margin: 10px 0;
+  width: 100%;
+  letter-spacing: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.military-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: 0.5s;
+}
+
+.military-btn:hover::before {
+  left: 100%;
+}
+
+.military-btn:hover {
+  background-color: #5a6c4b;
+  transform: translateY(-2px);
+}
+
+.military-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.military-btn.secondary {
+  background-color: var(--secondary-color);
+  border-color: var(--accent-color);
+}
+
+.military-btn.secondary:hover {
+  background-color: #3c3c3c;
+}
+
+.military-btn.danger {
+  background-color: var(--danger-color);
+}
+
+.military-btn.danger:hover {
+  background-color: #a01010;
+}
+
+.military-btn.warning {
+  background-color: var(--warning-color);
+  color: var(--secondary-color);
+}
+
+.military-btn.warning:hover {
+  background-color: #d1aa59;
+}
+
+.military-btn.accent {
+  background-color: var(--etat-major-color);
+}
+
+.military-btn.accent:hover {
+  background-color: #537ba5;
+}
+
+.military-btn.disabled {
+  background-color: var(--disabled-color);
+  cursor: not-allowed;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.military-btn.disabled:hover {
+  transform: none;
+  background-color: var(--disabled-color);
+}
+
+.military-btn[disabled] {
+  background-color: var(--disabled-color);
+  cursor: not-allowed;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Form styles */
+.form-container {
+  padding: 25px;
+  background: rgba(44, 44, 44, 0.7);
+  border-radius: 0;
+  margin: 15px;
+  border: 1px solid var(--accent-color);
+}
+
+.form-group {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: var(--accent-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 12px 15px;
+  background-color: rgba(44, 44, 44, 0.9);
+  border: 2px solid var(--accent-color);
+  color: var(--text-color);
+  font-family: 'Special Elite', cursive;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(181, 166, 66, 0.3);
+  background-color: rgba(44, 44, 44, 1);
+}
+
+/* Checkbox styles */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin-right: 10px;
+}
+
+/* Section styles */
+.section {
+  padding-bottom: 20px;
+  position: relative;
+}
+
+.hidden {
+  display: none;
+}
+
+.user-info {
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 1rem;
+  color: var(--accent-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+}
+
+/* Menu styles */
+.menu-buttons {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.etat-major-only {
+  background-color: var(--etat-major-color);
+}
+
+.etat-major-only:hover {
+  background-color: #537ba5;
+}
+
+/* Announcements styles */
+.announcements-container {
+  padding: 20px;
+}
+
+.announcements-list {
+  margin-bottom: 20px;
+}
+
+.announcement-item {
+  background: rgba(44, 44, 44, 0.8);
+  border: 1px solid var(--accent-color);
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.announcement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--accent-color);
+}
+
+.announcement-title {
+  color: var(--accent-color);
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.announcement-meta {
+  font-size: 0.9rem;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.announcement-content {
+  white-space: pre-wrap;
+  margin-top: 10px;
+}
+
+.confidential-badge {
+  background-color: var(--danger-color);
+  color: var(--text-color);
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  border-radius: 3px;
+  margin-left: 10px;
+}
+
+.service-buttons {
+  display: flex;
+  gap: 15px;
+  padding: 0 25px;
+}
+
+.service-info, 
+.service-history, 
+.admin-controls, 
+.user-hours-display {
+  padding: 20px;
+  background-color: rgba(44, 44, 44, 0.8);
+  margin: 20px;
+  border: 2px solid var(--accent-color);
+  position: relative;
+}
+
+.service-info p, 
+.total-hours p {
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.1rem;
+}
+
+.service-history h2, 
+.user-hours-display h2 {
+  color: var(--accent-color);
+  font-size: 1.3rem;
+  margin-bottom: 15px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.history-container, 
+.hours-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 2px solid var(--accent-color);
+  padding: 10px;
+  background-color: rgba(28, 28, 28, 0.9);
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) var(--secondary-color);
+}
+
+.history-entry, 
+.hours-entry {
+  padding: 12px;
+  border-bottom: 1px solid var(--accent-color);
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.history-entry:hover, 
+.hours-entry:hover {
+  background-color: rgba(181, 166, 66, 0.1);
+}
+
+.history-entry:last-child, 
+.hours-entry:last-child {
+  border-bottom: none;
+}
+
+.admin-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.user-selection, 
+.admin-actions, 
+.admin-user-actions {
+  width: 100%;
+}
+
+.admin-actions, 
+.admin-user-actions {
+  display: flex;
+  gap: 15px;
+}
+
+/* Warning text */
+.warning-text {
+  color: var(--warning-color);
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Info text */
+.info-text {
+  color: var(--accent-color);
+  font-size: 0.9rem;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* Footer styles */
+footer {
+  margin-top: 30px;
+  text-align: center;
+  color: var(--accent-color);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  width: 100%;
+  padding: 15px;
+  background-color: rgba(28, 28, 28, 0.8);
+  border-top: 2px solid var(--accent-color);
+}
+
+/* Regiment header styles */
+.regiment-header {
+  background-color: var(--secondary-color);
+  padding: 15px;
+  margin-top: 20px;
+  border-bottom: 2px solid var(--accent-color);
+  position: relative;
+}
+
+.regiment-header h3 {
+  color: var(--accent-color);
+  font-family: 'Special Elite', cursive;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.regiment-header button {
+  margin: 8px 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .container {
+    max-width: 100%;
+    margin: 10px;
+  }
+  
+  .military-header h1 {
+    font-size: 1.4rem;
+  }
+  
+  .service-buttons,
+  .admin-actions,
+  .admin-user-actions {
+    flex-direction: column;
+  }
+  
+  .user-info {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  .military-btn {
+    font-size: 1rem;
+    padding: 10px 20px;
+  }
+  
+  .form-container,
+  .service-info,
+  .service-history,
+  .admin-controls,
+  .user-hours-display {
+    padding: 15px;
+    margin: 10px;
+  }
+}
+
+/* Animations */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(74, 92, 59, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(74, 92, 59, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(74, 92, 59, 0); }
+}
+
+#start-service-btn:not(.disabled):not([disabled]) {
+  animation: pulse 2s infinite;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--secondary-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-color);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
+
+/* Regiment selection styles */
+.regiment-select {
+  background-color: rgba(44, 44, 44, 0.9);
+  color: var(--text-color);
+  border: 2px solid var(--accent-color);
+  padding: 12px;
+  width: 100%;
+  font-family: 'Special Elite', cursive;
+  margin-bottom: 15px;
+  cursor: pointer;
+}
+
+.regiment-select option {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  padding: 8px;
+}
+
+/* Password reset styles */
+.reset-password-link {
+  color: var(--accent-color);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 15px;
+  display: block;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: color 0.3s ease;
+}
+
+.reset-password-link:hover {
+  color: var(--warning-color);
+}
+
+.military-footer {
+  margin-top: 30px;
+  text-align: center;
+  color: var(--accent-color);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  width: 100%;
+  padding: 15px;
+  background-color: var(--secondary-color);
+  border-top: 3px double var(--accent-color);
+  position: relative;
+}
+
+.footer-stamp {
+  position: absolute;
+  bottom: 10px;
+  left: 20px;
+  width: 60px;
+  height: 60px;
+  border: 2px solid var(--accent-color);
+  border-radius: 50%;
+  transform: rotate(15deg);
+  opacity: 0.5;
+}
+
+.footer-stamp::before {
+  content: 'CLASSIFIED';
+  font-size: 8px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--accent-color);
+}
